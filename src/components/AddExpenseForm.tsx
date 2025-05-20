@@ -23,7 +23,7 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
     
     addExpense({
       amount: numAmount,
-      category: selectedCategory,
+      category: transactionType === 'income' ? 'other' : selectedCategory,
       type: transactionType
     });
     
@@ -62,13 +62,13 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
         </label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-xl font-semibold text-muted-foreground">
-            $
+            Rp.
           </span>
           <Input
             id="amount"
             type="number"
             placeholder="0.00"
-            className="pl-8 text-xl h-14"
+            className="pl-10 text-xl h-14"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             autoFocus
@@ -76,19 +76,21 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
         </div>
       </div>
 
-      <div>
-        <label className="text-lg font-medium block mb-2">Category</label>
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <CategoryPill
-              key={category}
-              category={category}
-              selected={selectedCategory === category}
-              onClick={() => setSelectedCategory(category)}
-            />
-          ))}
+      {transactionType === 'expense' && (
+        <div>
+          <label className="text-lg font-medium block mb-2">Category</label>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <CategoryPill
+                key={category}
+                category={category}
+                selected={selectedCategory === category}
+                onClick={() => setSelectedCategory(category)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex gap-3">
         <Button

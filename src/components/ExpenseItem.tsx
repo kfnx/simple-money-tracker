@@ -21,14 +21,14 @@ export const ExpenseItem = ({ expense }: ExpenseItemProps) => {
             <MinusCircle size={16} className="text-destructive mr-1" />
           )}
           <span className={`text-lg font-semibold ${isIncome ? 'text-green-600' : ''}`}>
-            ${expense.amount.toFixed(2)}
+            Rp.{expense.amount.toFixed(2)}
           </span>
         </div>
         <span className="text-sm text-muted-foreground">
           {format(expense.date, 'MMM d, h:mm a')}
         </span>
       </div>
-      <CategoryPill category={expense.category} />
+      {!isIncome && <CategoryPill category={expense.category} />}
     </div>
   );
 };

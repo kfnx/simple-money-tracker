@@ -26,10 +26,10 @@ const Index = () => {
         {/* Add Expense Button */}
         <button 
           onClick={() => setIsAddingExpense(true)}
-          className="add-expense-button bg-expense-dark text-white mx-auto w-20 h-20 shadow-lg"
+          className="add-expense-button bg-expense-dark text-white mx-auto"
           aria-label="Add expense"
         >
-          <Plus size={36} />
+          <Plus size={28} />
         </button>
 
         {/* Add Expense Dialog */}

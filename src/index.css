@@ -53,5 +53,20 @@
 }
 
 .add-expense-button {
-  @apply fixed bottom-6 w-16 h-16 flex items-center justify-center rounded-full shadow-lg transition-transform duration-200 active:scale-95;
+  @apply fixed bottom-6 flex items-center justify-center rounded-full shadow-lg transition-transform duration-200 active:scale-95;
+  /* Add a subtle pulsing animation to make it more noticeable */
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 0 rgba(37, 99, 235, 0.4);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
 }

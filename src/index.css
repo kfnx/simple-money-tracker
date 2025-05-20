@@ -55,3 +55,17 @@
 .add-expense-button {
   @apply fixed bottom-6 w-16 h-16 flex items-center justify-center rounded-full shadow-lg transition-transform duration-200 active:scale-95;
 }
+
+/* AI button animation */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.ai-consultant-button {
+  animation: pulse 2s infinite ease-in-out;
+}

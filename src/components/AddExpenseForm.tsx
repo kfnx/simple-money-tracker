@@ -2,13 +2,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CategoryType } from "@/types/expense";
+import { CategoryType, TransactionType } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { useExpenses } from "@/context/ExpenseContext";
+import { PlusCircle, MinusCircle } from "lucide-react";
 
 export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   const [amount, setAmount] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("other");
+  const [transactionType, setTransactionType] = useState<TransactionType>("expense");
   const { addExpense } = useExpenses();
 
   const categories: CategoryType[] = ["food", "transport", "entertainment", "shopping", "other"];
@@ -22,6 +24,7 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
     addExpense({
       amount: numAmount,
       category: selectedCategory,
+      type: transactionType
     });
     
     onClose();
@@ -29,6 +32,30 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="text-lg font-medium block mb-2">Transaction Type</label>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={transactionType === 'expense' ? 'default' : 'outline'}
+            className={transactionType === 'expense' ? 'bg-destructive text-destructive-foreground' : ''}
+            onClick={() => setTransactionType('expense')}
+          >
+            <MinusCircle className="mr-2" size={18} />
+            Expense
+          </Button>
+          <Button
+            type="button"
+            variant={transactionType === 'income' ? 'default' : 'outline'}
+            className={transactionType === 'income' ? 'bg-green-600 text-white hover:bg-green-700' : ''}
+            onClick={() => setTransactionType('income')}
+          >
+            <PlusCircle className="mr-2" size={18} />
+            Income
+          </Button>
+        </div>
+      </div>
+
       <div>
         <label htmlFor="amount" className="text-lg font-medium block mb-2">
           How much?
@@ -76,7 +103,11 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
         <Button 
           type="submit" 
           size="lg"
-          className="flex-1 bg-expense-dark hover:bg-expense-default"
+          className={`flex-1 ${
+            transactionType === 'income' 
+              ? 'bg-green-600 hover:bg-green-700' 
+              : 'bg-expense-dark hover:bg-expense-default'
+          }`}
           disabled={!amount || parseFloat(amount) <= 0}
         >
           Save

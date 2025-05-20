@@ -2,16 +2,28 @@
 import { Expense } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { format } from "date-fns";
+import { PlusCircle, MinusCircle } from "lucide-react";
 
 interface ExpenseItemProps {
   expense: Expense;
 }
 
 export const ExpenseItem = ({ expense }: ExpenseItemProps) => {
+  const isIncome = expense.type === 'income';
+  
   return (
     <div className="flex items-center justify-between p-4 border-b">
       <div className="flex flex-col">
-        <span className="text-lg font-semibold">${expense.amount.toFixed(2)}</span>
+        <div className="flex items-center">
+          {isIncome ? (
+            <PlusCircle size={16} className="text-green-600 mr-1" />
+          ) : (
+            <MinusCircle size={16} className="text-destructive mr-1" />
+          )}
+          <span className={`text-lg font-semibold ${isIncome ? 'text-green-600' : ''}`}>
+            ${expense.amount.toFixed(2)}
+          </span>
+        </div>
         <span className="text-sm text-muted-foreground">
           {format(expense.date, 'MMM d, h:mm a')}
         </span>

@@ -1,12 +1,14 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Expense } from '../types/expense';
+import { Expense, TransactionType } from '../types/expense';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ExpenseContextType {
   expenses: Expense[];
   addExpense: (expense: Omit<Expense, 'id' | 'date'>) => void;
   totalSpent: number;
+  totalIncome: number;
+  balance: number;
 }
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
@@ -31,7 +33,9 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Parse JSON and convert date strings back to Date objects
         const parsedExpenses = JSON.parse(savedExpenses).map((expense: any) => ({
           ...expense,
-          date: new Date(expense.date)
+          date: new Date(expense.date),
+          // Add type field with default 'expense' for backwards compatibility
+          type: expense.type || 'expense'
         }));
         setExpenses(parsedExpenses);
       } catch (error) {
@@ -56,17 +60,26 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     setExpenses((prev) => [newExpense, ...prev]);
     
+    const actionType = expenseData.type === 'income' ? 'Income' : 'Expense';
     toast({
-      title: "Expense added",
+      title: `${actionType} added`,
       description: `${expenseData.amount.toFixed(2)} for ${expenseData.category}`,
     });
   };
 
-  // Calculate total spent
-  const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  // Calculate totals
+  const totalSpent = expenses
+    .filter(expense => expense.type === 'expense')
+    .reduce((sum, expense) => sum + expense.amount, 0);
+
+  const totalIncome = expenses
+    .filter(expense => expense.type === 'income')
+    .reduce((sum, expense) => sum + expense.amount, 0);
+
+  const balance = totalIncome - totalSpent;
 
   return (
-    <ExpenseContext.Provider value={{ expenses, addExpense, totalSpent }}>
+    <ExpenseContext.Provider value={{ expenses, addExpense, totalSpent, totalIncome, balance }}>
       {children}
     </ExpenseContext.Provider>
   );

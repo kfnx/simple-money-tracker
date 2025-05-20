@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Expense, TransactionType } from '../types/expense';
+import { Expense } from '../types/expense';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ExpenseContextType {
@@ -31,7 +30,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (savedExpenses) {
       try {
         // Parse JSON and convert date strings back to Date objects
-        const parsedExpenses = JSON.parse(savedExpenses).map((expense: any) => ({
+        const parsedExpenses = JSON.parse(savedExpenses).map((expense: Expense) => ({
           ...expense,
           date: new Date(expense.date),
           // Add type field with default 'expense' for backwards compatibility
@@ -63,7 +62,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const actionType = expenseData.type === 'income' ? 'Income' : 'Expense';
     toast({
       title: `${actionType} added`,
-      description: `${expenseData.amount.toFixed(2)} for ${expenseData.category}`,
+      description: `${expenseData.amount} for ${expenseData.category}${expenseData.note ? ` - ${expenseData.note}` : ''}`,
     });
   };
 

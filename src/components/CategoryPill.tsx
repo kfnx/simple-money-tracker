@@ -1,4 +1,3 @@
-
 import { CategoryType } from "@/types/expense";
 
 interface CategoryPillProps {
@@ -18,12 +17,21 @@ export const CategoryPill = ({ category, onClick, selected = false }: CategoryPi
     other: "bg-category-other text-gray-800",
   };
 
+  const categoryEmojis = {
+    food: "🍔",
+    transport: "🚗",
+    entertainment: "🎮",
+    shopping: "🛍️",
+    other: "📝",
+  };
+
   return (
     <button
       type="button"
       className={`${baseClasses} ${categoryClasses[category]}`}
       onClick={onClick}
     >
+      <span className="mr-1">{categoryEmojis[category]}</span>
       {category.charAt(0).toUpperCase() + category.slice(1)}
     </button>
   );

@@ -16,7 +16,7 @@ const Index = () => {
     <ExpenseProvider>
       <div className="max-w-md mx-auto h-screen pt-4 px-4 pb-24 flex flex-col">
         <header className="mb-4">
-          <h1 className="text-2xl font-bold text-center">Simple Expenses</h1>
+          <h1 className="text-2xl font-bold text-center">Simple Money Tracker</h1>
         </header>
         
         <SummaryCard />
@@ -28,26 +28,26 @@ const Index = () => {
         {/* AI Consultant Button */}
         <button 
           onClick={() => setIsConsultantOpen(true)}
-          className="fixed bottom-6 left-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center"
+          className="ask-ai-button bg-expense-dark text-white mx-auto"
           aria-label="AI Consultant"
         >
           <Bot size={28} />
         </button>
 
-        {/* Add Expense Button */}
+        {/* Add Tracking Button */}
         <button 
           onClick={() => setIsAddingExpense(true)}
           className="add-expense-button bg-expense-dark text-white mx-auto"
-          aria-label="Add expense"
+          aria-label="Add Tracking"
         >
           <Plus size={28} />
         </button>
 
-        {/* Add Expense Dialog */}
+        {/* Add Tracking Dialog */}
         <Dialog open={isAddingExpense} onOpenChange={setIsAddingExpense}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Add Expense</DialogTitle>
+              <DialogTitle>Add Tracking</DialogTitle>
             </DialogHeader>
             <AddExpenseForm onClose={() => setIsAddingExpense(false)} />
           </DialogContent>

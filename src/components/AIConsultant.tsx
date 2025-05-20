@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useExpenses } from '@/context/ExpenseContext';
 import { Button } from '@/components/ui/button';
@@ -83,13 +82,13 @@ export const AIConsultant = ({ onClose }: { onClose: () => void }) => {
     let aiResponse = '';
     
     if (questionText.toLowerCase().includes('spend')) {
-      aiResponse = `You've spent a total of $${totalSpent.toFixed(2)} so far. `;
+      aiResponse = `You've spent a total of Rp. ${totalSpent.toLocaleString('id-ID')} so far. `;
       if (topCategory) {
-        aiResponse += `Your highest spending category is ${topCategory[0]} at $${topCategory[1].toFixed(2)}.`;
+        aiResponse += `Your highest spending category is ${topCategory[0]} at Rp. ${topCategory[1].toLocaleString('id-ID')}.`;
       }
     } else if (questionText.toLowerCase().includes('category')) {
       if (topCategory) {
-        aiResponse = `Your highest spending category is ${topCategory[0]} at $${topCategory[1].toFixed(2)}. `;
+        aiResponse = `Your highest spending category is ${topCategory[0]} at Rp. ${topCategory[1].toLocaleString('id-ID')}. `;
         aiResponse += `This represents ${((topCategory[1]/totalSpent)*100).toFixed(0)}% of your total expenses.`;
       } else {
         aiResponse = `You don't have any categorized expenses yet.`;

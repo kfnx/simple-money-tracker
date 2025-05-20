@@ -1,4 +1,3 @@
-
 export type CategoryType = 'food' | 'transport' | 'entertainment' | 'shopping' | 'other';
 export type TransactionType = 'expense' | 'income';
 
@@ -8,4 +7,5 @@ export interface Expense {
   category: CategoryType;
   date: Date;
   type: TransactionType;
+  note?: string;
 }

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,7 @@ import { PlusCircle, MinusCircle } from "lucide-react";
 
 export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   const [amount, setAmount] = useState<string>("");
+  const [note, setNote] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("other");
   const [transactionType, setTransactionType] = useState<TransactionType>("expense");
   const { addExpense } = useExpenses();
@@ -24,7 +24,8 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
     addExpense({
       amount: numAmount,
       category: transactionType === 'income' ? 'other' : selectedCategory,
-      type: transactionType
+      type: transactionType,
+      note: note.trim() || undefined
     });
     
     onClose();
@@ -67,13 +68,26 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
           <Input
             id="amount"
             type="number"
-            placeholder="0.00"
-            className="pl-10 text-xl h-14"
+            placeholder="0"
+            className="pl-12 text-xl h-14"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             autoFocus
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="note" className="text-lg font-medium block mb-2">
+          Note (optional)
+        </label>
+        <Input
+          id="note"
+          type="text"
+          placeholder="Add a note..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
       </div>
 
       {transactionType === 'expense' && (

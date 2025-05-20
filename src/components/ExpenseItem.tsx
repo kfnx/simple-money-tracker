@@ -1,4 +1,3 @@
-
 import { Expense } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { format } from "date-fns";
@@ -21,12 +20,19 @@ export const ExpenseItem = ({ expense }: ExpenseItemProps) => {
             <MinusCircle size={16} className="text-destructive mr-1" />
           )}
           <span className={`text-lg font-semibold ${isIncome ? 'text-green-600' : ''}`}>
-            Rp.{expense.amount.toFixed(2)}
+            Rp. {expense.amount.toLocaleString('id-ID')}
           </span>
         </div>
-        <span className="text-sm text-muted-foreground">
-          {format(expense.date, 'MMM d, h:mm a')}
-        </span>
+        <div className="flex flex-col">
+          <span className="text-sm text-muted-foreground">
+            {format(expense.date, 'MMM d, h:mm a')}
+          </span>
+          {expense.note && (
+            <span className="text-sm text-muted-foreground italic">
+              {expense.note}
+            </span>
+          )}
+        </div>
       </div>
       {!isIncome && <CategoryPill category={expense.category} />}
     </div>

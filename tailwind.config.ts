@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom expense tracker colors
+				expense: {
+					light: '#D3E4FD', // Soft blue
+					default: '#4F85E5', // Medium blue
+					dark: '#2563EB', // Darker blue
+				},
+				category: {
+					food: '#FEC6A1', // Soft orange
+					transport: '#FEF7CD', // Soft yellow
+					entertainment: '#E5DEFF', // Soft purple
+					shopping: '#FFDEE2', // Soft pink
+					other: '#F1F0FB', // Soft gray
 				}
 			},
 			borderRadius: {

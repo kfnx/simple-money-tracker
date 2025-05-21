@@ -1,3 +1,4 @@
+
 import { Expense } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { format } from "date-fns";
@@ -5,13 +6,14 @@ import { PlusCircle, MinusCircle } from "lucide-react";
 
 interface ExpenseItemProps {
   expense: Expense;
+  onClick: (expense: Expense) => void;
 }
 
-export const ExpenseItem = ({ expense }: ExpenseItemProps) => {
+export const ExpenseItem = ({ expense, onClick }: ExpenseItemProps) => {
   const isIncome = expense.type === 'income';
   
   return (
-    <div className="flex items-center justify-between p-4 border-b">
+    <div className="flex items-center justify-between p-4 border-b hover:bg-gray-50 cursor-pointer" onClick={() => onClick(expense)}>
       <div className="flex flex-col">
         <div className="flex items-center">
           {isIncome ? (

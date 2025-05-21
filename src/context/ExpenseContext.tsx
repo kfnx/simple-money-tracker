@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Expense, DatabaseExpense } from '@/types/expense';
+import { Expense, DatabaseExpense, CategoryType } from '@/types/expense';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
@@ -39,7 +39,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (savedExpenses) {
           try {
             // Parse JSON and convert date strings back to Date objects
-            const parsedExpenses = JSON.parse(savedExpenses).map((expense: any) => ({
+            const parsedExpenses = JSON.parse(savedExpenses).map((expense: Expense) => ({
               ...expense,
               date: new Date(expense.date),
               // Add type field with default 'expense' for backwards compatibility
@@ -68,7 +68,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
           id: dbExpense.id,
           amount: Number(dbExpense.amount),
-          category: dbExpense.category as any,
+          category: dbExpense.category as CategoryType,
           date: new Date(dbExpense.date),
           type: dbExpense.type as 'expense' | 'income',
           note: dbExpense.note
@@ -131,7 +131,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
           id: dbExpense.id,
           amount: Number(dbExpense.amount),
-          category: dbExpense.category as any,
+          category: dbExpense.category as CategoryType,
           date: new Date(dbExpense.date),
           type: dbExpense.type as 'expense' | 'income',
           note: dbExpense.note
@@ -168,6 +168,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
           .update({
             ...updatedFields,
             amount: updatedFields.amount,
+            date: updatedFields.date?.toISOString(),
           })
           .eq('id', id);
         
@@ -189,7 +190,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
           id: dbExpense.id,
           amount: Number(dbExpense.amount),
-          category: dbExpense.category as any,
+          category: dbExpense.category as CategoryType,
           date: new Date(dbExpense.date),
           type: dbExpense.type as 'expense' | 'income',
           note: dbExpense.note

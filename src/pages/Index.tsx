@@ -1,11 +1,15 @@
-
 import { useState } from "react";
 import { SummaryCard } from "@/components/SummaryCard";
 import { ExpensesList } from "@/components/ExpensesList";
 import { AddExpenseForm } from "@/components/AddExpenseForm";
 import { ExpenseProvider } from "@/context/ExpenseContext";
 import { Plus, Bot, User, LogOut } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { AIConsultant } from "@/components/AIConsultant";
 import { AuthForms } from "@/components/AuthForms";
 import { useAuth } from "@/context/AuthContext";
@@ -18,88 +22,89 @@ const Index = () => {
   const { user, signOut, loading } = useAuth();
 
   return (
-    <div className="max-w-md mx-auto h-screen pt-4 px-4 pb-24 flex flex-col">
-      <header className="mb-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Simple Money Tracker</h1>
-        {!loading && (
-          user ? (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={signOut}
-              className="flex items-center gap-1"
-            >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
-          ) : (
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAuthOpen(true)}
-              className="flex items-center gap-1"
-            >
-              <User size={16} />
-              <span>Sign In</span>
-            </Button>
-          )
-        )}
-      </header>
-      
-      <SummaryCard />
-      
-      <div className="flex-1 overflow-y-auto">
-        <ExpensesList />
+    <ExpenseProvider>
+      <div className="max-w-md mx-auto h-screen pt-4 px-4 pb-24 flex flex-col">
+        <header className="mb-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Simple Money Tracker</h1>
+          {!loading &&
+            (user ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={signOut}
+                className="flex items-center gap-1"
+              >
+                <LogOut size={16} />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAuthOpen(true)}
+                className="flex items-center gap-1"
+              >
+                <User size={16} />
+                <span>Sign In</span>
+              </Button>
+            ))}
+        </header>
+
+        <SummaryCard />
+
+        <div className="flex-1 overflow-y-auto">
+          <ExpensesList />
+        </div>
+
+        {/* AI Consultant Button */}
+        <button
+          onClick={() => setIsConsultantOpen(true)}
+          className="ask-ai-button bg-expense-dark text-white mx-auto"
+          aria-label="AI Consultant"
+        >
+          <Bot size={28} />
+        </button>
+
+        {/* Add Tracking Button */}
+        <button
+          onClick={() => setIsAddingExpense(true)}
+          className="add-expense-button bg-expense-dark text-white mx-auto"
+          aria-label="Add Tracking"
+        >
+          <Plus size={28} />
+        </button>
+
+        {/* Add Tracking Dialog */}
+        <Dialog open={isAddingExpense} onOpenChange={setIsAddingExpense}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Tracking</DialogTitle>
+            </DialogHeader>
+            <AddExpenseForm onClose={() => setIsAddingExpense(false)} />
+          </DialogContent>
+        </Dialog>
+
+        {/* AI Consultant Dialog */}
+        <Dialog open={isConsultantOpen} onOpenChange={setIsConsultantOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>AI Finance Consultant</DialogTitle>
+            </DialogHeader>
+            <AIConsultant onClose={() => setIsConsultantOpen(false)} />
+          </DialogContent>
+        </Dialog>
+
+        {/* Auth Dialog */}
+        <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Account</DialogTitle>
+            </DialogHeader>
+            <AuthForms onClose={() => setIsAuthOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* AI Consultant Button */}
-      <button 
-        onClick={() => setIsConsultantOpen(true)}
-        className="ask-ai-button bg-expense-dark text-white mx-auto"
-        aria-label="AI Consultant"
-      >
-        <Bot size={28} />
-      </button>
-
-      {/* Add Tracking Button */}
-      <button 
-        onClick={() => setIsAddingExpense(true)}
-        className="add-expense-button bg-expense-dark text-white mx-auto"
-        aria-label="Add Tracking"
-      >
-        <Plus size={28} />
-      </button>
-
-      {/* Add Tracking Dialog */}
-      <Dialog open={isAddingExpense} onOpenChange={setIsAddingExpense}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Tracking</DialogTitle>
-          </DialogHeader>
-          <AddExpenseForm onClose={() => setIsAddingExpense(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* AI Consultant Dialog */}
-      <Dialog open={isConsultantOpen} onOpenChange={setIsConsultantOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>AI Finance Consultant</DialogTitle>
-          </DialogHeader>
-          <AIConsultant onClose={() => setIsConsultantOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Auth Dialog */}
-      <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Account</DialogTitle>
-          </DialogHeader>
-          <AuthForms onClose={() => setIsAuthOpen(false)} />
-        </DialogContent>
-      </Dialog>
-    </div>
+    </ExpenseProvider>
   );
 };
 

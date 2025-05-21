@@ -23,7 +23,7 @@ const Index = () => {
 
   return (
     <ExpenseProvider>
-      <div className="max-w-md mx-auto h-screen pt-4 px-4 pb-24 flex flex-col">
+      <div className="max-w-md mx-auto h-screen pt-4 px-4 pb-20 flex flex-col">
         <header className="mb-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Simple Money Tracker</h1>
           {!loading &&

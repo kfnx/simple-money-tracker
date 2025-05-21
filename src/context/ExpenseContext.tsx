@@ -1,9 +1,17 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Expense, DatabaseExpense, CategoryType } from '@/types/expense';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ExpenseContextType {
   expenses: Expense[];
@@ -27,6 +35,8 @@ export const useExpenses = () => {
 
 export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [localExpenses, setLocalExpenses] = useState<Expense[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -94,6 +104,86 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem('expenses', JSON.stringify(expenses));
     }
   }, [expenses, user]);
+
+  // Check for local expenses when user logs in
+  useEffect(() => {
+    if (user) {
+      const savedExpenses = localStorage.getItem('expenses');
+      if (savedExpenses) {
+        try {
+          const parsedExpenses = JSON.parse(savedExpenses).map((expense: Expense) => ({
+            ...expense,
+            date: new Date(expense.date),
+            type: expense.type || 'expense'
+          }));
+          setLocalExpenses(parsedExpenses);
+          setShowSyncModal(true);
+        } catch (error) {
+          console.error('Failed to parse saved expenses:', error);
+        }
+      }
+    }
+  }, [user]);
+
+  const handleSyncExpenses = async () => {
+    try {
+      // Add all local expenses to Supabase
+      const { error } = await supabase.from('expenses').insert(
+        localExpenses.map(expense => ({
+          amount: expense.amount,
+          category: expense.category,
+          type: expense.type,
+          note: expense.note,
+          user_id: user?.id,
+          date: expense.date.toISOString(),
+        }))
+      );
+
+      if (error) throw error;
+
+      // Clear localStorage
+      localStorage.removeItem('expenses');
+      setLocalExpenses([]);
+      setShowSyncModal(false);
+
+      // Refresh expenses from database
+      const { data, error: fetchError } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
+        id: dbExpense.id,
+        amount: Number(dbExpense.amount),
+        category: dbExpense.category as CategoryType,
+        date: new Date(dbExpense.date),
+        type: dbExpense.type as 'expense' | 'income',
+        note: dbExpense.note
+      }));
+
+      setExpenses(convertedExpenses);
+
+      toast({
+        title: 'Success',
+        description: 'Your local expenses have been synced to your account.',
+      });
+    } catch (error) {
+      console.error('Error syncing expenses:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to sync your local expenses.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSkipSync = () => {
+    localStorage.removeItem('expenses');
+    setLocalExpenses([]);
+    setShowSyncModal(false);
+  };
 
   const addExpense = async (expenseData: Omit<Expense, 'id' | 'date'>) => {
     const newExpense: Expense = {
@@ -276,6 +366,24 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       balance 
     }}>
       {children}
+      <Dialog open={showSyncModal} onOpenChange={setShowSyncModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sync Local Expenses</DialogTitle>
+            <DialogDescription>
+              We found {localExpenses.length} expense(s) in your local storage. Would you like to sync them to your account?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={handleSkipSync}>
+              Skip
+            </Button>
+            <Button onClick={handleSyncExpenses}>
+              Sync Expenses
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ExpenseContext.Provider>
   );
 };

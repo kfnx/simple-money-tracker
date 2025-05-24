@@ -201,6 +201,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
           type: newExpense.type,
           note: newExpense.note,
           user_id: user.id,
+          date: newExpense.date.toISOString(),
         });
         
         if (error) {
@@ -253,13 +254,14 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (user) {
       try {
         // Update expense in Supabase
+        const updateData: any = { ...updatedFields };
+        if (updateData.date) {
+          updateData.date = updateData.date.toISOString();
+        }
+        
         const { error } = await supabase
           .from('expenses')
-          .update({
-            ...updatedFields,
-            amount: updatedFields.amount,
-            date: updatedFields.date?.toISOString(),
-          })
+          .update(updateData)
           .eq('id', id);
         
         if (error) {

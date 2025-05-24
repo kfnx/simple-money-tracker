@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 
 interface ExpenseContextType {
   expenses: Expense[];
-  addExpense: (expense: Omit<Expense, 'id' | 'date'>) => void;
+  addExpense: (expense: Omit<Expense, 'id'>) => void;
   updateExpense: (id: string, expense: Partial<Omit<Expense, 'id'>>) => void;
   deleteExpense: (id: string) => void;
   totalSpent: number;
@@ -185,11 +185,10 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setShowSyncModal(false);
   };
 
-  const addExpense = async (expenseData: Omit<Expense, 'id' | 'date'>) => {
+  const addExpense = async (expenseData: Omit<Expense, 'id'>) => {
     const newExpense: Expense = {
       ...expenseData,
       id: crypto.randomUUID(),
-      date: new Date(),
     };
     
     if (user) {

@@ -1,16 +1,22 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CategoryType, TransactionType } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { useExpenses } from "@/context/ExpenseContext";
-import { PlusCircle, MinusCircle } from "lucide-react";
+import { PlusCircle, MinusCircle, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   const [amount, setAmount] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("other");
   const [transactionType, setTransactionType] = useState<TransactionType>("expense");
+  const [date, setDate] = useState<Date>(new Date());
   const { addExpense } = useExpenses();
 
   const categories: CategoryType[] = ["food", "transport", "entertainment", "shopping", "other"];
@@ -25,7 +31,8 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
       amount: numAmount,
       category: transactionType === 'income' ? 'other' : selectedCategory,
       type: transactionType,
-      note: note.trim() || undefined
+      note: note.trim() || undefined,
+      date: date
     });
     
     onClose();
@@ -75,6 +82,33 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
             autoFocus
           />
         </div>
+      </div>
+
+      <div>
+        <label className="text-lg font-medium block mb-2">Date</label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal h-14",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "PPP") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(newDate) => newDate && setDate(newDate)}
+              initialFocus
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div>

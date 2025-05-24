@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { CategoryType, Expense, TransactionType } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { useExpenses } from "@/context/ExpenseContext";
-import { PlusCircle, MinusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, MinusCircle, Trash2, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +31,7 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
   const [note, setNote] = useState<string>(expense.note || "");
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>(expense.category);
   const [transactionType, setTransactionType] = useState<TransactionType>(expense.type);
+  const [date, setDate] = useState<Date>(expense.date);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const { updateExpense, deleteExpense } = useExpenses();
@@ -43,7 +48,8 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
       amount: numAmount,
       category: transactionType === 'income' ? 'other' : selectedCategory,
       type: transactionType,
-      note: note.trim() || undefined
+      note: note.trim() || undefined,
+      date: date
     });
     
     onClose();
@@ -99,6 +105,33 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
               autoFocus
             />
           </div>
+        </div>
+
+        <div>
+          <label className="text-lg font-medium block mb-2">Date</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal h-14",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(newDate) => newDate && setDate(newDate)}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>

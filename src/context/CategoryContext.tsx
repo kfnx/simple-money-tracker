@@ -12,6 +12,7 @@ interface CategoryContextType {
   updateCategory: (id: string, category: Partial<Omit<CustomCategory, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   getAllCategories: () => { name: string; emoji: string; background_color: string }[];
+  clearData: () => void;
 }
 
 const CategoryContext = createContext<CategoryContextType | undefined>(undefined);
@@ -36,6 +37,11 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     { name: 'shopping', emoji: '🛍️', background_color: '#fce7f3' },
     { name: 'other', emoji: '📝', background_color: '#f3f4f6' },
   ];
+
+  // Clear all data (for logout)
+  const clearData = () => {
+    setCategories([]);
+  };
 
   // Load categories from Supabase when user is logged in
   useEffect(() => {
@@ -76,6 +82,17 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return;
     }
 
+    // Check if category name already exists
+    const allCategories = getAllCategories();
+    if (allCategories.some(cat => cat.name.toLowerCase() === categoryData.name.toLowerCase())) {
+      toast({
+        title: 'Category already exists',
+        description: `A category with the name "${categoryData.name}" already exists.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -89,6 +106,14 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .single();
 
       if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          toast({
+            title: 'Category already exists',
+            description: `A category with the name "${categoryData.name}" already exists.`,
+            variant: 'destructive',
+          });
+          return;
+        }
         throw error;
       }
 
@@ -111,6 +136,23 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateCategory = async (id: string, updatedFields: Partial<Omit<CustomCategory, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
     if (!user) return;
 
+    // Check if new name already exists (if name is being updated)
+    if (updatedFields.name) {
+      const allCategories = getAllCategories();
+      const currentCategory = categories.find(cat => cat.id === id);
+      if (allCategories.some(cat => 
+        cat.name.toLowerCase() === updatedFields.name!.toLowerCase() && 
+        cat.name !== currentCategory?.name
+      )) {
+        toast({
+          title: 'Category already exists',
+          description: `A category with the name "${updatedFields.name}" already exists.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -123,6 +165,14 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .single();
 
       if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          toast({
+            title: 'Category already exists',
+            description: `A category with the name "${updatedFields.name}" already exists.`,
+            variant: 'destructive',
+          });
+          return;
+        }
         throw error;
       }
 
@@ -189,6 +239,7 @@ export const CategoryProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       updateCategory,
       deleteCategory,
       getAllCategories,
+      clearData,
     }}>
       {children}
     </CategoryContext.Provider>

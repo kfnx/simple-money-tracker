@@ -5,7 +5,7 @@ export type TransactionType = 'expense' | 'income';
 export interface Expense {
   id: string;
   amount: number;
-  category: CategoryType;
+  category: string; // Changed from CategoryType to string to support custom categories
   date: Date;
   type: TransactionType;
   note?: string;

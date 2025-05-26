@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Expense, DatabaseExpense, CategoryType } from '@/types/expense';
+import { Expense, DatabaseExpense } from '@/types/expense';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
@@ -21,6 +21,7 @@ interface ExpenseContextType {
   totalSpent: number;
   totalIncome: number;
   balance: number;
+  clearData: () => void;
 }
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
@@ -40,6 +41,12 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { toast } = useToast();
   const { user } = useAuth();
   
+  // Clear all data (for logout)
+  const clearData = () => {
+    setExpenses([]);
+    localStorage.removeItem('expenses');
+  };
+
   // Load expenses from Supabase when user is logged in
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -78,7 +85,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
           id: dbExpense.id,
           amount: Number(dbExpense.amount),
-          category: dbExpense.category as CategoryType,
+          category: dbExpense.category,
           date: new Date(dbExpense.date),
           type: dbExpense.type as 'expense' | 'income',
           note: dbExpense.note
@@ -157,7 +164,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
         id: dbExpense.id,
         amount: Number(dbExpense.amount),
-        category: dbExpense.category as CategoryType,
+        category: dbExpense.category,
         date: new Date(dbExpense.date),
         type: dbExpense.type as 'expense' | 'income',
         note: dbExpense.note
@@ -221,7 +228,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
           id: dbExpense.id,
           amount: Number(dbExpense.amount),
-          category: dbExpense.category as CategoryType,
+          category: dbExpense.category,
           date: new Date(dbExpense.date),
           type: dbExpense.type as 'expense' | 'income',
           note: dbExpense.note
@@ -281,7 +288,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const convertedExpenses: Expense[] = (data as DatabaseExpense[]).map(dbExpense => ({
           id: dbExpense.id,
           amount: Number(dbExpense.amount),
-          category: dbExpense.category as CategoryType,
+          category: dbExpense.category,
           date: new Date(dbExpense.date),
           type: dbExpense.type as 'expense' | 'income',
           note: dbExpense.note
@@ -364,7 +371,8 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       deleteExpense,
       totalSpent, 
       totalIncome, 
-      balance 
+      balance,
+      clearData
     }}>
       {children}
       <Dialog open={showSyncModal} onOpenChange={setShowSyncModal}>

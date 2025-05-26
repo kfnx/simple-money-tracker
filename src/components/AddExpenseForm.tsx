@@ -18,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CategoryManager } from "./CategoryManager";
+import { NumberInput } from "./NumberInput";
+import { useAuth } from "@/context/AuthContext";
 
 export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   const [amount, setAmount] = useState<string>("");
@@ -26,9 +28,11 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   const [transactionType, setTransactionType] = useState<TransactionType>("expense");
   const [date, setDate] = useState<Date>(new Date());
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   
   const { addExpense } = useExpenses();
   const { getAllCategories } = useCategories();
+  const { user } = useAuth();
 
   const allCategories = getAllCategories();
 
@@ -47,6 +51,14 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
     });
     
     onClose();
+  };
+
+  const handleCategoryManage = () => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+    setShowCategoryManager(true);
   };
 
   return (
@@ -84,13 +96,12 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-xl font-semibold text-muted-foreground">
               Rp.
             </span>
-            <Input
+            <NumberInput
               id="amount"
-              type="number"
               placeholder="0"
               className="pl-12 text-xl h-14"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={setAmount}
               autoFocus
             />
           </div>
@@ -133,7 +144,11 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
             placeholder="Add a note..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
+            maxLength={128}
           />
+          <div className="text-xs text-muted-foreground mt-1">
+            {note.length}/128 characters
+          </div>
         </div>
 
         {transactionType === 'expense' && (
@@ -144,7 +159,7 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowCategoryManager(true)}
+                onClick={handleCategoryManage}
                 className="flex items-center gap-1"
               >
                 <Settings size={16} />
@@ -196,6 +211,19 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
             <DialogTitle>Category Manager</DialogTitle>
           </DialogHeader>
           <CategoryManager onClose={() => setShowCategoryManager(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Auth Dialog */}
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sign In Required</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>Please sign in to manage categories.</p>
+            {/* Add auth forms here or redirect to main auth dialog */}
+          </div>
         </DialogContent>
       </Dialog>
     </>

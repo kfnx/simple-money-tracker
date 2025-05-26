@@ -6,9 +6,10 @@ interface FormActionsProps {
   onCancel: () => void;
   amount: string;
   transactionType: TransactionType;
+  submitLabel?: string;
 }
 
-export const FormActions = ({ onCancel, amount, transactionType }: FormActionsProps) => {
+export const FormActions = ({ onCancel, amount, transactionType, submitLabel = 'Save' }: FormActionsProps) => {
   return (
     <div className="flex gap-3">
       <Button
@@ -30,7 +31,7 @@ export const FormActions = ({ onCancel, amount, transactionType }: FormActionsPr
         }`}
         disabled={!amount || parseFloat(amount) <= 0}
       >
-        Save
+        {submitLabel}
       </Button>
     </div>
   );

@@ -1,18 +1,27 @@
 import React, { useState, useRef } from 'react';
 import { useExpenses } from '@/context/ExpenseContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Bot } from 'lucide-react';
+import { AuthDialog } from './expense-form/AuthDialog';
 
 export const AIConsultant = ({ onClose }: { onClose: () => void }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { expenses, totalSpent, totalIncome, balance } = useExpenses();
+  const { user } = useAuth();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
   const toggleRecording = async () => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+
     if (isRecording) {
       // Stop recording
       if (mediaRecorderRef.current) {
@@ -116,6 +125,10 @@ export const AIConsultant = ({ onClose }: { onClose: () => void }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
     if (!question.trim()) return;
     await getAIAnswer(question);
   };
@@ -166,6 +179,12 @@ export const AIConsultant = ({ onClose }: { onClose: () => void }) => {
       <div className="pt-2">
         <Button variant="outline" onClick={onClose} className="w-full">Close</Button>
       </div>
+
+      <AuthDialog 
+        open={showAuthDialog} 
+        onOpenChange={setShowAuthDialog} 
+        description="Please sign in to use the AI consultant."
+      />
     </div>
   );
 };

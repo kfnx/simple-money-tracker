@@ -105,6 +105,7 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
       <AuthDialog 
         open={showAuthDialog} 
         onOpenChange={setShowAuthDialog} 
+        description="Please sign in to manage categories."
       />
     </>
   );

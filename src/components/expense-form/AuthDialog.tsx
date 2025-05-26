@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -9,9 +8,14 @@ import {
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  description: string;
 }
 
-export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
+export const AuthDialog = ({
+  open,
+  onOpenChange,
+  description,
+}: AuthDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -19,7 +23,7 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           <DialogTitle>Sign In Required</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p>Please sign in to manage categories.</p>
+          <p>{description}</p>
         </div>
       </DialogContent>
     </Dialog>

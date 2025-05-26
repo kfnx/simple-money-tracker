@@ -150,6 +150,7 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
       <AuthDialog 
         open={showAuthDialog} 
         onOpenChange={setShowAuthDialog} 
+        description="Please sign in to manage categories."
       />
 
       {/* Delete Confirmation Dialog */}

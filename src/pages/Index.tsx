@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AIConsultant } from "@/components/AIConsultant";
+import { AIAssistant } from "@/components/AIAssistant";
 import { AuthForms } from "@/components/AuthForms";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -100,9 +100,9 @@ const IndexContent = () => {
       <Dialog open={isConsultantOpen} onOpenChange={setIsConsultantOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>AI Finance Consultant</DialogTitle>
+            <DialogTitle>AI Finance Assistant</DialogTitle>
           </DialogHeader>
-          <AIConsultant onClose={() => setIsConsultantOpen(false)} />
+          <AIAssistant onClose={() => setIsConsultantOpen(false)} />
         </DialogContent>
       </Dialog>
 

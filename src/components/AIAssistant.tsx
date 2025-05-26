@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Bot } from 'lucide-react';
 import { AuthDialog } from './expense-form/AuthDialog';
 
-export const AIConsultant = ({ onClose }: { onClose: () => void }) => {
+export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
@@ -137,7 +137,7 @@ export const AIConsultant = ({ onClose }: { onClose: () => void }) => {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Bot size={24} className="text-primary" />
-        <h2 className="text-lg font-medium">AI Finance Assistant</h2>
+        <h2 className="text-lg font-medium">SaldoAI, your personal finance assistant!</h2>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">

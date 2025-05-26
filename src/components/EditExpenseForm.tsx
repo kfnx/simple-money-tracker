@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CategoryType, Expense, TransactionType } from "@/types/expense";
+import { Expense, TransactionType } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { useExpenses } from "@/context/ExpenseContext";
-import { PlusCircle, MinusCircle, Trash2, CalendarIcon } from "lucide-react";
+import { useCategories } from "@/context/CategoryContext";
+import { PlusCircle, MinusCircle, Trash2, CalendarIcon, Settings } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -20,6 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CategoryManager } from "./CategoryManager";
 
 interface EditExpenseFormProps {
   expense: Expense;
@@ -29,14 +37,16 @@ interface EditExpenseFormProps {
 export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
   const [amount, setAmount] = useState<string>(expense.amount.toString());
   const [note, setNote] = useState<string>(expense.note || "");
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType>(expense.category);
+  const [selectedCategory, setSelectedCategory] = useState<string>(expense.category);
   const [transactionType, setTransactionType] = useState<TransactionType>(expense.type);
   const [date, setDate] = useState<Date>(expense.date);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   
   const { updateExpense, deleteExpense } = useExpenses();
+  const { getAllCategories } = useCategories();
 
-  const categories: CategoryType[] = ["food", "transport", "entertainment", "shopping", "other"];
+  const allCategories = getAllCategories();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,14 +159,26 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
 
         {transactionType === 'expense' && (
           <div>
-            <label className="text-lg font-medium block mb-2">Category</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-lg font-medium">Category</label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCategoryManager(true)}
+                className="flex items-center gap-1"
+              >
+                <Settings size={16} />
+                Manage
+              </Button>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
+              {allCategories.map((category) => (
                 <CategoryPill
-                  key={category}
-                  category={category}
-                  selected={selectedCategory === category}
-                  onClick={() => setSelectedCategory(category)}
+                  key={category.name}
+                  category={category.name}
+                  selected={selectedCategory === category.name}
+                  onClick={() => setSelectedCategory(category.name)}
                 />
               ))}
             </div>
@@ -216,6 +238,16 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Category Manager Dialog */}
+      <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Category Manager</DialogTitle>
+          </DialogHeader>
+          <CategoryManager onClose={() => setShowCategoryManager(false)} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

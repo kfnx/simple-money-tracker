@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { forwardRef } from "react";
 
@@ -46,7 +45,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       <Input
         {...props}
         ref={ref}
-        type="number"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
         value={displayValue}
         onChange={handleChange}
       />

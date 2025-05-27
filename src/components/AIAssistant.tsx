@@ -1,20 +1,26 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Bot, Send } from "lucide-react";
+import { Mic, MicOff, Bot, Send, User } from "lucide-react";
 import { AuthDialog } from "./expense-form/AuthDialog";
 import { supabase } from "@/integrations/supabase/client";
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -24,6 +30,11 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [question]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory]);
 
   const toggleRecording = async () => {
     if (!user) {
@@ -97,7 +108,6 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
     }
 
     setIsLoading(true);
-    setAnswer("");
 
     try {
       console.log("Getting AI response for:", questionText);
@@ -117,6 +127,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
           body: {
             question: questionText,
             authToken: session.access_token,
+            chatHistory: chatHistory, // Pass chat history for context
           },
         }
       );
@@ -130,16 +141,23 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
         throw new Error(data.error);
       }
 
-      setAnswer(
-        data.response || "Sorry, I could not generate a response at this time."
-      );
+      // Add user message and AI response to chat history
+      setChatHistory(prev => [
+        ...prev,
+        { role: 'user', content: questionText },
+        { role: 'assistant', content: data.response || "Sorry, I could not generate a response at this time." }
+      ]);
+
     } catch (error) {
       console.error("Error getting AI response:", error);
-      setAnswer(
-        "I apologize, but I encountered an error while processing your question. Please try again."
-      );
+      setChatHistory(prev => [
+        ...prev,
+        { role: 'user', content: questionText },
+        { role: 'assistant', content: "I apologize, but I encountered an error while processing your question. Please try again." }
+      ]);
     } finally {
       setIsLoading(false);
+      setQuestion(""); // Clear input after sending
     }
   };
 
@@ -154,7 +172,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-[600px]">
       <div className="flex items-center gap-2 mb-4">
         <Bot size={24} className="text-primary" />
         <h2 className="font-medium">Hello, I'm SaldoAI!</h2>
@@ -165,32 +183,57 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
         patterns and provide personalized advice!
       </div>
 
-      {isLoading && (
-        <div className="p-4 rounded-md bg-muted flex items-center gap-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-          <div>Analyzing your financial data...</div>
-        </div>
-      )}
-
-      {answer && !isLoading && (
-        <div className="p-4 rounded-md bg-primary/10 border border-primary/20">
+      {/* Chat History */}
+      <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+        {chatHistory.map((message, index) => (
+          <div
+            key={index}
+            className={`flex items-start gap-2 ${
+              message.role === 'assistant' ? 'justify-start' : 'justify-end'
+            }`}
+          >
+            {message.role === 'assistant' && (
+              <Bot size={20} className="text-primary mt-0.5 flex-shrink-0" />
+            )}
+            <div
+              className={`p-3 rounded-lg max-w-[80%] ${
+                message.role === 'assistant'
+                  ? 'bg-primary/10 border border-primary/20'
+                  : 'bg-primary text-primary-foreground'
+              }`}
+            >
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            </div>
+            {message.role === 'user' && (
+              <User size={20} className="text-primary-foreground mt-0.5 flex-shrink-0" />
+            )}
+          </div>
+        ))}
+        {isLoading && (
           <div className="flex items-start gap-2">
             <Bot size={20} className="text-primary mt-0.5 flex-shrink-0" />
-            <p className="text-sm whitespace-pre-wrap">{answer}</p>
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <div className="text-sm">Analyzing your financial data...</div>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+        <div ref={chatEndRef} />
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Input Form */}
+      <form onSubmit={handleSubmit} className="space-y-4 relative">
         <textarea
           ref={textareaRef}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask about your finances..."
           className="w-full rounded-md border p-2 text-sm min-h-[40px] max-h-[200px] resize-none overflow-hidden"
-          rows={1}
+          rows={2}
         />
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 absolute bottom-3 right-2">
           <Button
             type="button"
             onClick={toggleRecording}

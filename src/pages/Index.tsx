@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { SummaryCard } from "@/components/SummaryCard";
 import { ExpensesList } from "@/components/ExpensesList";
@@ -17,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useExpenses } from "@/context/ExpenseContext";
 import { useCategories } from "@/context/CategoryContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const IndexContent = () => {
   const [isAddingExpense, setIsAddingExpense] = useState(false);
@@ -25,27 +27,28 @@ const IndexContent = () => {
   const { user, signOut, loading } = useAuth();
   const { clearData: clearExpenseData } = useExpenses();
   const { clearData: clearCategoryData } = useCategories();
+  const { trackAuthEvent, trackAIEvent } = useAnalytics();
 
   const handleSignOut = async () => {
     await signOut();
+    trackAuthEvent.signOut();
     // Clear all context data
     clearExpenseData();
     clearCategoryData();
   };
 
+  const handleOpenAIAssistant = () => {
+    setIsAssistantOpen(true);
+    trackAIEvent.openAssistant();
+  };
+
+  const handleCloseAIAssistant = () => {
+    setIsAssistantOpen(false);
+    trackAIEvent.closeAssistant();
+  };
+
   return (
     <div className="max-w-md mx-auto h-screen pt-safe px-1 sm:py-4 flex flex-col relative">
-      {/* <header className="mb-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <img
-            src="/favicon.ico"
-            alt="Simple Money Tracker logo"
-            width={32}
-            height={32}
-          />
-          <h1 className="text-xl">Simple Money Tracker</h1>
-        </div>
-      </header> */}
       {!loading &&
         (user ? (
           <Button
@@ -77,7 +80,7 @@ const IndexContent = () => {
 
       {/* AI Assistant Button */}
       <button
-        onClick={() => setIsAssistantOpen(true)}
+        onClick={handleOpenAIAssistant}
         className="ask-ai-button bg-expense-dark text-white"
         aria-label="AI Assistant"
       >
@@ -109,7 +112,7 @@ const IndexContent = () => {
           <DialogHeader>
             <DialogTitle>AI Finance Assistant</DialogTitle>
           </DialogHeader>
-          <AIAssistant onClose={() => setIsAssistantOpen(false)} />
+          <AIAssistant onClose={handleCloseAIAssistant} />
         </DialogContent>
       </Dialog>
 

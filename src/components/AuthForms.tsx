@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 export const AuthForms = ({ onClose }: { onClose: () => void }) => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -12,6 +13,7 @@ export const AuthForms = ({ onClose }: { onClose: () => void }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const { trackAuthEvent } = useAnalytics();
 
   const toggleMode = () => {
     setMode(mode === 'signin' ? 'signup' : 'signin');
@@ -27,9 +29,11 @@ export const AuthForms = ({ onClose }: { onClose: () => void }) => {
     try {
       if (mode === 'signin') {
         await signIn(email, password);
+        trackAuthEvent.signIn();
         onClose();
       } else {
         await signUp(email, password);
+        trackAuthEvent.signUp();
         setMode('signin');
         toast({
           title: "Verification email sent",

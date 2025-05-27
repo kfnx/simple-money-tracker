@@ -17,6 +17,7 @@ import { NoteInput } from "./expense-form/NoteInput";
 import { CategorySelector } from "./expense-form/CategorySelector";
 import { FormActions } from "./expense-form/FormActions";
 import { AuthDialog } from "./expense-form/AuthDialog";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   const [amount, setAmount] = useState<string>("");
@@ -29,6 +30,7 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   
   const { addExpense } = useExpenses();
   const { user } = useAuth();
+  const { trackFinancialEvent } = useAnalytics();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +45,13 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
       note: note.trim() || undefined,
       date: date
     });
+
+    // Track the financial event
+    if (transactionType === 'expense') {
+      trackFinancialEvent.addExpense(numAmount, selectedCategory);
+    } else {
+      trackFinancialEvent.addIncome(numAmount);
+    }
     
     onClose();
   };

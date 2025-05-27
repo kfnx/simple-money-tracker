@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Expense, TransactionType } from "@/types/expense";
 import { useExpenses } from "@/context/ExpenseContext";
@@ -28,6 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface EditExpenseFormProps {
   expense: Expense;
@@ -47,6 +49,7 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
   
   const { updateExpense, deleteExpense } = useExpenses();
   const { user } = useAuth();
+  const { trackFinancialEvent } = useAnalytics();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,12 +64,17 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
       note: note.trim() || undefined,
       date: date
     });
+
+    // Track the edit event
+    trackFinancialEvent.editTransaction(transactionType);
     
     onClose();
   };
 
   const handleDelete = () => {
     deleteExpense(expense.id);
+    // Track the delete event
+    trackFinancialEvent.deleteTransaction(expense.type);
     onClose();
   };
 

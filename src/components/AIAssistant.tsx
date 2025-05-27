@@ -1,9 +1,11 @@
+
 import React, { useState, useRef } from 'react';
 import { useExpenses } from '@/context/ExpenseContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Bot } from 'lucide-react';
+import { Mic, MicOff, Bot, Send } from 'lucide-react';
 import { AuthDialog } from './expense-form/AuthDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -11,7 +13,6 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   const [answer, setAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const { expenses, totalSpent, totalIncome, balance } = useExpenses();
   const { user } = useAuth();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -69,58 +70,56 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
       "How much did I spend this month?",
       "What category do I spend the most on?",
       "How can I improve my savings?",
-      "Should I reduce my expenses?"
+      "Should I reduce my expenses?",
+      "What's my spending pattern like?",
+      "How is my financial health?",
+      "Where should I cut back on spending?"
     ];
     return exampleQuestions[Math.floor(Math.random() * exampleQuestions.length)];
   };
 
   const getAIAnswer = async (questionText: string) => {
-    setIsLoading(true);
-    
-    // Prepare financial data summary
-    const categories = expenses.reduce((acc: Record<string, number>, expense) => {
-      if (expense.type === 'expense') {
-        acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
-      }
-      return acc;
-    }, {});
-    
-    const topCategory = Object.entries(categories).sort((a, b) => b[1] - a[1])[0];
-    
-    // Mock AI response based on the question and financial data
-    let aiResponse = '';
-    
-    if (questionText.toLowerCase().includes('spend')) {
-      aiResponse = `You've spent a total of Rp. ${totalSpent.toLocaleString('id-ID')} so far. `;
-      if (topCategory) {
-        aiResponse += `Your highest spending category is ${topCategory[0]} at Rp. ${topCategory[1].toLocaleString('id-ID')}.`;
-      }
-    } else if (questionText.toLowerCase().includes('category')) {
-      if (topCategory) {
-        aiResponse = `Your highest spending category is ${topCategory[0]} at Rp. ${topCategory[1].toLocaleString('id-ID')}. `;
-        aiResponse += `This represents ${((topCategory[1]/totalSpent)*100).toFixed(0)}% of your total expenses.`;
-      } else {
-        aiResponse = `You don't have any categorized expenses yet.`;
-      }
-    } else if (questionText.toLowerCase().includes('saving') || questionText.toLowerCase().includes('improve')) {
-      if (balance < 0) {
-        aiResponse = `You're currently spending more than your income. Consider cutting back on ${topCategory ? topCategory[0] : 'your top expenses'} to improve your savings.`;
-      } else {
-        aiResponse = `You're currently saving about ${((balance/totalIncome)*100).toFixed(0)}% of your income. `;
-        aiResponse += `Financial experts recommend saving at least 20% of your income.`;
-      }
-    } else if (questionText.toLowerCase().includes('reduce')) {
-      aiResponse = `If you want to reduce expenses, look at your highest spending category: ${topCategory ? topCategory[0] : 'your top category'}. `;
-      aiResponse += `Try setting a budget that's 10-15% lower than your current spending in that category.`;
-    } else {
-      aiResponse = `I can help answer questions about your spending, saving habits, and provide financial advice based on your expense tracking data.`;
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
     }
+
+    setIsLoading(true);
+    setAnswer('');
     
-    // Delay to simulate API call
-    setTimeout(() => {
-      setAnswer(aiResponse);
+    try {
+      console.log('Getting AI response for:', questionText);
+      
+      // Get the user's session to pass to the edge function
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('No valid session found');
+      }
+
+      const { data, error } = await supabase.functions.invoke('ai-finance-chat', {
+        body: {
+          question: questionText,
+          authToken: session.access_token,
+        },
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      setAnswer(data.response || 'Sorry, I could not generate a response at this time.');
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      setAnswer('I apologize, but I encountered an error while processing your question. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,6 +137,10 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
       <div className="flex items-center gap-2 mb-4">
         <Bot size={24} className="text-primary" />
         <h2 className="text-lg font-medium">SaldoAI, your personal finance assistant!</h2>
+      </div>
+
+      <div className="text-sm text-muted-foreground mb-4">
+        Ask me anything about your finances. I'll analyze your actual spending patterns and provide personalized advice!
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,20 +162,28 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
             {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
           </Button>
           <Button type="submit" disabled={!question.trim() || isLoading}>
-            Ask
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <Send size={20} />
+            )}
           </Button>
         </div>
       </form>
       
       {isLoading && (
-        <div className="p-4 rounded-md bg-muted flex justify-center">
-          <div className="animate-pulse">Getting answer...</div>
+        <div className="p-4 rounded-md bg-muted flex items-center gap-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          <div>Analyzing your financial data...</div>
         </div>
       )}
       
       {answer && !isLoading && (
         <div className="p-4 rounded-md bg-primary/10 border border-primary/20">
-          <p className="text-sm">{answer}</p>
+          <div className="flex items-start gap-2">
+            <Bot size={20} className="text-primary mt-0.5 flex-shrink-0" />
+            <p className="text-sm whitespace-pre-wrap">{answer}</p>
+          </div>
         </div>
       )}
       
@@ -183,7 +194,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
       <AuthDialog 
         open={showAuthDialog} 
         onOpenChange={setShowAuthDialog} 
-        description="Please sign in to use the AI consultant."
+        description="Please sign in to use the AI consultant. I need access to your financial data to provide personalized advice."
       />
     </div>
   );

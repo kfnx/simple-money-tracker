@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,6 +37,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Handle iOS safe area for PWA */
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    /* Don't add bottom padding as we handle it per component */
+  }
+  
+  /* Ensure the app container respects safe areas */
+  #root {
+    min-height: 100vh;
+    min-height: calc(100vh - env(safe-area-inset-top));
   }
 }
 

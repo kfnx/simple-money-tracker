@@ -34,25 +34,14 @@ const IndexContent = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-screen pt-1 px-1 sm:py-4 flex flex-col relative">
-      {/* <header className="mb-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <img
-            src="/favicon.ico"
-            alt="Simple Money Tracker logo"
-            width={32}
-            height={32}
-          />
-          <h1 className="text-xl">Simple Money Tracker</h1>
-        </div>
-      </header> */}
+    <div className="max-w-md mx-auto h-screen pt-4 px-1 sm:py-4 flex flex-col relative safe-area-container">
       {!loading &&
         (user ? (
           <Button
             variant="outline"
             size="sm"
             onClick={handleSignOut}
-            className="flex items-center gap-1 absolute right-4 sm:top-6 top-4"
+            className="flex items-center gap-1 absolute right-4 top-4 z-20"
           >
             <LogOut size={16} />
             <span className="hidden sm:inline">Sign Out</span>
@@ -62,7 +51,7 @@ const IndexContent = () => {
             variant="outline"
             size="sm"
             onClick={() => setIsAuthOpen(true)}
-            className="flex items-center gap-1 absolute right-4 sm:top-6 top-4"
+            className="flex items-center gap-1 absolute right-4 top-4 z-20"
           >
             <User size={16} />
             <span>Sign In</span>
@@ -122,6 +111,12 @@ const IndexContent = () => {
           <AuthForms onClose={() => setIsAuthOpen(false)} />
         </DialogContent>
       </Dialog>
+
+      <style jsx>{`
+        .safe-area-container {
+          padding-top: max(1rem, env(safe-area-inset-top));
+        }
+      `}</style>
     </div>
   );
 };

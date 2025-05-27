@@ -10,12 +10,12 @@ export const NoteInput = ({ value, onChange }: NoteInputProps) => {
   return (
     <div>
       <label htmlFor="note" className="font-medium block mb-2">
-        Note (optional)
+        Note
       </label>
       <Input
         id="note"
         type="text"
-        placeholder="Add a note..."
+        placeholder="Add a note (optional)"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         maxLength={128}

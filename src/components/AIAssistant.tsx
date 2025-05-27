@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Bot, Send } from "lucide-react";
@@ -14,6 +14,16 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   const { user } = useAuth();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [question]);
 
   const toggleRecording = async () => {
     if (!user) {
@@ -172,12 +182,13 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask about your finances..."
-          className="w-full rounded-md border p-2 text-sm"
+          className="w-full rounded-md border p-2 text-sm min-h-[40px] max-h-[200px] resize-none overflow-hidden"
+          rows={1}
         />
         <div className="flex justify-end gap-2">
           <Button

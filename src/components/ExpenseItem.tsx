@@ -13,7 +13,7 @@ export const ExpenseItem = ({ expense, onClick }: ExpenseItemProps) => {
   const isIncome = expense.type === 'income';
   
   return (
-    <div className="flex items-center justify-between p-4 border-b hover:bg-gray-50 cursor-pointer" onClick={() => onClick(expense)}>
+    <div className="flex items-center justify-between pt-1 pb-2 px-4 border-b hover:bg-gray-50 cursor-pointer" onClick={() => onClick(expense)}>
       <div className="flex flex-col">
         <div className="flex items-center">
           {isIncome ? (

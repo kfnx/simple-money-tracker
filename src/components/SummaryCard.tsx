@@ -6,14 +6,14 @@ export const SummaryCard = () => {
   const { totalSpent, totalIncome, balance } = useExpenses();
 
   return (
-    <Card className="bg-gradient-to-br from-expense-light to-expense-default mb-6">
+    <Card className="bg-gradient-to-br from-expense-light to-expense-default mb-2">
       <CardContent className="pt-6 pb-6">
         <div className="flex flex-col gap-3">
           {/* Balance */}
           <div>
             <h2 className="text-sm font-medium text-white/80 mb-1">Balance</h2>
             <p className="text-3xl font-bold text-white flex items-center">
-              Rp. {Math.abs(balance).toLocaleString('id-ID')}
+              Rp. {balance.toLocaleString('id-ID')}
               {balance !== 0 && (
                 balance > 0 
                   ? <ArrowUp className="ml-1 text-green-300" size={20} /> 

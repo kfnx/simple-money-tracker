@@ -21,7 +21,7 @@ import { useCategories } from "@/context/CategoryContext";
 
 const IndexContent = () => {
   const [isAddingExpense, setIsAddingExpense] = useState(false);
-  const [isConsultantOpen, setIsConsultantOpen] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const { user, signOut, loading } = useAuth();
   const { clearData: clearExpenseData } = useExpenses();
@@ -35,9 +35,9 @@ const IndexContent = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-screen pt-4 px-4 pb-20 flex flex-col">
+    <div className="max-w-md mx-auto h-screen py-4 flex flex-col">
       <header className="mb-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Simple Money Tracker</h1>
+        <h1 className="px-4 text-2xl font-bold">Simple Money Tracker</h1>
         {!loading &&
           (user ? (
             <Button
@@ -68,11 +68,11 @@ const IndexContent = () => {
         <ExpensesList />
       </div>
 
-      {/* AI Consultant Button */}
+      {/* AI Assistant Button */}
       <button
-        onClick={() => setIsConsultantOpen(true)}
-        className="ask-ai-button bg-expense-dark text-white mx-auto"
-        aria-label="AI Consultant"
+        onClick={() => setIsAssistantOpen(true)}
+        className="ask-ai-button bg-expense-dark text-white mx-auto sm:right-1/2"
+        aria-label="AI Assistant"
       >
         <Bot size={28} />
       </button>
@@ -80,7 +80,7 @@ const IndexContent = () => {
       {/* Add Tracking Button */}
       <button
         onClick={() => setIsAddingExpense(true)}
-        className="add-expense-button bg-expense-dark text-white mx-auto"
+        className="add-expense-button bg-expense-dark text-white mx-auto sm:left-1/2"
         aria-label="Add Tracking"
       >
         <Plus size={28} />
@@ -96,13 +96,13 @@ const IndexContent = () => {
         </DialogContent>
       </Dialog>
 
-      {/* AI Consultant Dialog */}
-      <Dialog open={isConsultantOpen} onOpenChange={setIsConsultantOpen}>
+      {/* AI Assistant Dialog */}
+      <Dialog open={isAssistantOpen} onOpenChange={setIsAssistantOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>AI Finance Assistant</DialogTitle>
           </DialogHeader>
-          <AIAssistant onClose={() => setIsConsultantOpen(false)} />
+          <AIAssistant onClose={() => setIsAssistantOpen(false)} />
         </DialogContent>
       </Dialog>
 

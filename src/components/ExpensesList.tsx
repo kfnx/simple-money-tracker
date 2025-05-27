@@ -58,8 +58,8 @@ export const ExpensesList = () => {
           }
 
           return (
-            <div key={dateKey} className="space-y-2">
-              <div className="px-4 py-2 bg-gray-50 border-b">
+            <div key={dateKey} className="pt-2">
+              <div className="px-4 p-2 bg-gray-50 border-b">
                 <h3 className="text-sm font-medium text-gray-600">{dateLabel}</h3>
               </div>
               <div className="divide-y">

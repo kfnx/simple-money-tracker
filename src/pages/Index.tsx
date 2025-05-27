@@ -34,7 +34,7 @@ const IndexContent = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-screen pt-1 px-1 sm:py-4 flex flex-col relative">
+    <div className="max-w-md mx-auto h-screen pt-safe px-1 sm:py-4 flex flex-col relative">
       {/* <header className="mb-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <img
@@ -52,7 +52,7 @@ const IndexContent = () => {
             variant="outline"
             size="sm"
             onClick={handleSignOut}
-            className="flex items-center gap-1 absolute right-4 sm:top-6 top-4"
+            className="flex items-center gap-1 absolute right-4 sm:top-6 top-safe"
           >
             <LogOut size={16} />
             <span className="hidden sm:inline">Sign Out</span>
@@ -62,7 +62,7 @@ const IndexContent = () => {
             variant="outline"
             size="sm"
             onClick={() => setIsAuthOpen(true)}
-            className="flex items-center gap-1 absolute right-4 sm:top-6 top-4"
+            className="flex items-center gap-1 absolute right-4 sm:top-6 top-safe"
           >
             <User size={16} />
             <span>Sign In</span>

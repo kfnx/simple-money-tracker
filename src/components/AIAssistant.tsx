@@ -172,7 +172,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   };
 
   return (
-    <div className="flex flex-col h-[600px]">
+    <div className="flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <Bot size={24} className="text-primary" />
         <h2 className="font-medium">Hello, I'm SaldoAI!</h2>
@@ -230,7 +230,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask about your finances..."
-          className="w-full rounded-md border p-2 text-sm min-h-[40px] max-h-[200px] resize-none overflow-hidden"
+          className="w-full rounded-md border p-2 pb-12 text-sm min-h-[40px] max-h-[200px] resize-none overflow-hidden"
           rows={2}
         />
         <div className="flex justify-end gap-2 absolute bottom-3 right-2">

@@ -9,7 +9,7 @@ interface NoteInputProps {
 export const NoteInput = ({ value, onChange }: NoteInputProps) => {
   return (
     <div>
-      <label htmlFor="note" className="text-lg font-medium block mb-2">
+      <label htmlFor="note" className="font-medium block mb-2">
         Note (optional)
       </label>
       <Input

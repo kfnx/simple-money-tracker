@@ -11,7 +11,7 @@ interface TransactionTypeSelectorProps {
 export const TransactionTypeSelector = ({ value, onChange }: TransactionTypeSelectorProps) => {
   return (
     <div>
-      <label className="text-lg font-medium block mb-2">Transaction Type</label>
+      <label className="font-medium block mb-2">Transaction Type</label>
       <div className="flex gap-2">
         <Button
           type="button"

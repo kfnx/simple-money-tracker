@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.7';
@@ -11,6 +10,19 @@ const corsHeaders = {
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+interface FinancialContext {
+  text: string;
+  type: 'overview' | 'categories' | 'monthly' | 'transaction';
+}
+
+interface Expense {
+  type: 'expense' | 'income';
+  amount: number;
+  category: string;
+  date: string;
+  note?: string;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -81,8 +93,8 @@ serve(async (req) => {
   }
 });
 
-function processFinancialData(expenses: any[]) {
-  const contexts = [];
+function processFinancialData(expenses: Expense[]) {
+  const contexts: FinancialContext[] = [];
   
   // Calculate totals
   const totalSpent = expenses.filter(e => e.type === 'expense').reduce((sum, e) => sum + Number(e.amount), 0);
@@ -116,20 +128,20 @@ function processFinancialData(expenses: any[]) {
 
   // Create context strings for embeddings
   contexts.push({
-    text: `Financial overview: Total income Rp.${totalIncome.toLocaleString('id-ID')}, total spent Rp.${totalSpent.toLocaleString('id-ID')}, balance Rp.${balance.toLocaleString('id-ID')}`,
+    text: `Financial overview: Total income Rp ${totalIncome.toLocaleString('id-ID')}, total spent Rp ${totalSpent.toLocaleString('id-ID')}, balance Rp ${balance.toLocaleString('id-ID')}`,
     type: 'overview'
   });
 
   if (topCategories.length > 0) {
     contexts.push({
-      text: `Top spending categories: ${topCategories.map(([cat, amount]) => `${cat} Rp.${amount.toLocaleString('id-ID')}`).join(', ')}`,
+      text: `Top spending categories: ${topCategories.map(([cat, amount]) => `${cat} Rp ${amount.toLocaleString('id-ID')}`).join(', ')}`,
       type: 'categories'
     });
   }
 
   Object.entries(monthlyData).forEach(([month, data]) => {
     contexts.push({
-      text: `${month}: spent Rp.${data.spent.toLocaleString('id-ID')}, income Rp.${data.income.toLocaleString('id-ID')}, net Rp.${(data.income - data.spent).toLocaleString('id-ID')}`,
+      text: `${month}: spent Rp ${data.spent.toLocaleString('id-ID')}, income Rp ${data.income.toLocaleString('id-ID')}, net Rp ${(data.income - data.spent).toLocaleString('id-ID')}`,
       type: 'monthly'
     });
   });
@@ -138,7 +150,7 @@ function processFinancialData(expenses: any[]) {
   const recentTransactions = expenses.slice(0, 10);
   recentTransactions.forEach(expense => {
     contexts.push({
-      text: `${expense.type} on ${expense.date}: Rp.${Number(expense.amount).toLocaleString('id-ID')} for ${expense.category}${expense.note ? ` (${expense.note})` : ''}`,
+      text: `${expense.type} on ${expense.date}: Rp ${Number(expense.amount).toLocaleString('id-ID')} for ${expense.category}${expense.note ? ` (${expense.note})` : ''}`,
       type: 'transaction'
     });
   });
@@ -170,7 +182,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
-function findRelevantContext(questionEmbedding: number[], contextEmbeddings: number[][], contexts: any[]) {
+function findRelevantContext(questionEmbedding: number[], contextEmbeddings: number[][], contexts: FinancialContext[]) {
   const similarities = contextEmbeddings.map((embedding, index) => ({
     similarity: cosineSimilarity(questionEmbedding, embedding),
     context: contexts[index]
@@ -183,7 +195,7 @@ function findRelevantContext(questionEmbedding: number[], contextEmbeddings: num
     .map(item => item.context);
 }
 
-async function generateAIResponse(question: string, relevantContext: any[], allExpenses: any[]): Promise<string> {
+async function generateAIResponse(question: string, relevantContext: FinancialContext[], allExpenses: Expense[]): Promise<string> {
   const contextText = relevantContext.map(ctx => ctx.text).join('\n');
   
   const systemPrompt = `You are SaldoAI, a personal finance assistant for Indonesian users. You have access to the user's real financial data and should provide personalized advice based on their actual spending patterns and financial situation.
@@ -192,13 +204,13 @@ Financial Context:
 ${contextText}
 
 Guidelines:
-- Use Indonesian Rupiah (Rp.) for all amounts
+- Use Indonesian Rupiah (Rp ) for all amounts
 - Be conversational and helpful
 - Provide specific, actionable advice based on their actual data
 - If you notice concerning patterns, mention them kindly
 - Celebrate good financial habits when you see them
 - Keep responses concise but informative
-- Use Indonesian number formatting (e.g., Rp.1.000.000)`;
+- Use Indonesian number formatting (e.g., Rp 1.000.000)`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',

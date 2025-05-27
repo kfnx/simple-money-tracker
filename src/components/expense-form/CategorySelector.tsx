@@ -21,7 +21,7 @@ export const CategorySelector = ({
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="text-lg font-medium">Category</label>
+        <label className="font-medium">Category</label>
         <Button
           type="button"
           variant="ghost"

@@ -14,7 +14,7 @@ interface DateSelectorProps {
 export const DateSelector = ({ value, onChange }: DateSelectorProps) => {
   return (
     <div>
-      <label className="text-lg font-medium block mb-2">Date</label>
+      <label className="font-medium block mb-2">Date</label>
       <Popover>
         <PopoverTrigger asChild>
           <Button

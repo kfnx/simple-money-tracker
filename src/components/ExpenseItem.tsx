@@ -1,4 +1,3 @@
-
 import { Expense } from "@/types/expense";
 import { CategoryPill } from "./CategoryPill";
 import { format } from "date-fns";
@@ -10,10 +9,13 @@ interface ExpenseItemProps {
 }
 
 export const ExpenseItem = ({ expense, onClick }: ExpenseItemProps) => {
-  const isIncome = expense.type === 'income';
-  
+  const isIncome = expense.type === "income";
+
   return (
-    <div className="flex items-center justify-between pt-1 pb-2 px-4 border-b hover:bg-gray-50 cursor-pointer" onClick={() => onClick(expense)}>
+    <div
+      className="flex items-center justify-between py-2 px-4 border-b hover:bg-gray-50 cursor-pointer"
+      onClick={() => onClick(expense)}
+    >
       <div className="flex flex-col">
         <div className="flex items-center">
           {isIncome ? (
@@ -21,17 +23,17 @@ export const ExpenseItem = ({ expense, onClick }: ExpenseItemProps) => {
           ) : (
             <MinusCircle size={16} className="text-destructive mr-1" />
           )}
-          <span className={`text-lg font-semibold ${isIncome ? 'text-green-600' : ''}`}>
-            Rp. {expense.amount.toLocaleString('id-ID')}
+          <span className={isIncome ? "text-green-600" : ""}>
+            Rp {expense.amount.toLocaleString("id-ID")}
           </span>
         </div>
-        <div className="flex flex-col">
-          <span className="text-sm text-muted-foreground">
-            {format(expense.date, 'MMM d, h:mm a')}
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-muted-foreground">
+            {format(expense.date, "h:mm a")}
           </span>
           {expense.note && (
-            <span className="text-sm text-muted-foreground italic">
-              {expense.note}
+            <span className="text-xs text-muted-foreground">
+              • {expense.note}
             </span>
           )}
         </div>

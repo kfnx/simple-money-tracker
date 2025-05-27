@@ -136,7 +136,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Bot size={24} className="text-primary" />
-        <h2 className="text-lg font-medium">SaldoAI, your personal finance assistant!</h2>
+        <h2 className="font-medium">Hello, I'm SaldoAI!</h2>
       </div>
 
       <div className="text-sm text-muted-foreground mb-4">

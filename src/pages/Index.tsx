@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SummaryCard } from "@/components/SummaryCard";
 import { ExpensesList } from "@/components/ExpensesList";
@@ -35,43 +34,51 @@ const IndexContent = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-screen py-4 flex flex-col">
-      <header className="mb-4 flex justify-between items-center">
-        <h1 className="px-4 text-2xl font-bold">Simple Money Tracker</h1>
-        {!loading &&
-          (user ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="flex items-center gap-1"
-            >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAuthOpen(true)}
-              className="flex items-center gap-1"
-            >
-              <User size={16} />
-              <span>Sign In</span>
-            </Button>
-          ))}
-      </header>
+    <div className="max-w-md mx-auto h-screen pt-1 px-1 sm:py-4 flex flex-col relative">
+      {/* <header className="mb-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <img
+            src="/favicon.ico"
+            alt="Simple Money Tracker logo"
+            width={32}
+            height={32}
+          />
+          <h1 className="text-xl">Simple Money Tracker</h1>
+        </div>
+      </header> */}
+      {!loading &&
+        (user ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="flex items-center gap-1 absolute right-4 sm:top-6 top-4"
+          >
+            <LogOut size={16} />
+            <span className="hidden sm:inline">Sign Out</span>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAuthOpen(true)}
+            className="flex items-center gap-1 absolute right-4 sm:top-6 top-4"
+          >
+            <User size={16} />
+            <span>Sign In</span>
+          </Button>
+        ))}
 
       <SummaryCard />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-20">
         <ExpensesList />
       </div>
 
       {/* AI Assistant Button */}
       <button
         onClick={() => setIsAssistantOpen(true)}
-        className="ask-ai-button bg-expense-dark text-white mx-auto sm:right-1/2"
+        className="ask-ai-button bg-expense-dark text-white"
         aria-label="AI Assistant"
       >
         <Bot size={28} />
@@ -80,7 +87,7 @@ const IndexContent = () => {
       {/* Add Tracking Button */}
       <button
         onClick={() => setIsAddingExpense(true)}
-        className="add-expense-button bg-expense-dark text-white mx-auto sm:left-1/2"
+        className="add-expense-button bg-expense-dark text-white"
         aria-label="Add Tracking"
       >
         <Plus size={28} />

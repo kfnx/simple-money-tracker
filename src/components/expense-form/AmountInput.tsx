@@ -9,7 +9,7 @@ interface AmountInputProps {
 export const AmountInput = ({ value, onChange }: AmountInputProps) => {
   return (
     <div>
-      <label htmlFor="amount" className="text-lg font-medium block mb-2">
+      <label htmlFor="amount" className="font-medium block mb-2">
         How much?
       </label>
       <div className="relative">

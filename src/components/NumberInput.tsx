@@ -46,7 +46,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       <Input
         {...props}
         ref={ref}
-        type="text"
+        type="number"
         value={displayValue}
         onChange={handleChange}
       />

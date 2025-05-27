@@ -71,7 +71,7 @@ const IndexContent = () => {
 
       <SummaryCard />
 
-      <div className="flex-1 overflow-y-auto pb-20">
+      <div className="flex-1 overflow-y-auto">
         <ExpensesList />
       </div>
 

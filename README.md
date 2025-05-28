@@ -5,10 +5,8 @@ Built with Lovable + Cursor
 
 ## Project info
 
-**App URL**: https://lazy-money-tracker.lovable.app
+**App URL**: https://money-tracker.kafin.dev
 **Lovable URL**: https://lovable.dev/projects/a4db4440-bf41-4eff-96f5-aeb0098e55d9 (Feel free to remix)
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 

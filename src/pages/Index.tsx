@@ -54,7 +54,7 @@ const IndexContent = () => {
             variant="outline"
             size="sm"
             onClick={handleSignOut}
-            className="flex items-center gap-1 absolute right-4 sm:top-6 top-safe"
+            className="flex items-center gap-1 absolute right-4 top-6"
           >
             <LogOut size={16} />
             <span className="hidden sm:inline">Sign Out</span>
@@ -64,7 +64,7 @@ const IndexContent = () => {
             variant="outline"
             size="sm"
             onClick={() => setIsAuthOpen(true)}
-            className="flex items-center gap-1 absolute right-4 sm:top-6 top-safe"
+            className="flex items-center gap-1 absolute right-4 top-6"
           >
             <User size={16} />
             <span>Sign In</span>

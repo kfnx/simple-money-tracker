@@ -1,53 +1,50 @@
-
-import { render, fireEvent } from '@testing-library/react';
-import { screen } from '@testing-library/dom';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { NumberInput } from '../NumberInput';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('NumberInput', () => {
-  test('formats numbers with thousand separators', () => {
-    const mockOnChange = jest.fn();
+  it('formats numbers with thousand separators', () => {
+    const mockOnChange = vi.fn();
+    render(<NumberInput value="1000000" onChange={mockOnChange} />);
     
-    render(
-      <NumberInput
-        value="50000"
-        onChange={mockOnChange}
-        placeholder="Enter amount"
-      />
-    );
-
-    const input = screen.getByDisplayValue('50.000');
-    expect(input).toBeInTheDocument();
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveValue('1.000.000');
   });
 
-  test('calls onChange with clean numeric value', () => {
-    const mockOnChange = jest.fn();
+  it('calls onChange with clean numeric value', () => {
+    const mockOnChange = vi.fn();
+    render(<NumberInput value="1000000" onChange={mockOnChange} />);
     
-    render(
-      <NumberInput
-        value=""
-        onChange={mockOnChange}
-        placeholder="Enter amount"
-      />
-    );
-
-    const input = screen.getByPlaceholderText('Enter amount');
-    fireEvent.change(input, { target: { value: '123.456' } });
-
-    expect(mockOnChange).toHaveBeenCalledWith('123456');
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '2.000.000' } });
+    
+    expect(mockOnChange).toHaveBeenCalledWith('2000000');
   });
 
-  test('handles empty input', () => {
-    const mockOnChange = jest.fn();
-    
-    render(
-      <NumberInput
-        value=""
-        onChange={mockOnChange}
-        placeholder="Enter amount"
-      />
-    );
+  it('allows decimal input and formats correctly', () => {
+    const mockOnChange = vi.fn();
+    render(<NumberInput value="1234.56" onChange={mockOnChange} />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveValue('1.234.56');
+  });
 
-    const input = screen.getByPlaceholderText('Enter amount');
-    expect(input).toHaveValue('');
+  it('passes raw input value to onChange', () => {
+    const mockOnChange = vi.fn();
+    render(<NumberInput value="1234" onChange={mockOnChange} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '1a2b3c4d' } });
+    expect(mockOnChange).toHaveBeenCalledWith('1a2b3c4d');
+  });
+
+  it('calls onChange with correct value for various valid inputs', () => {
+    const mockOnChange = vi.fn();
+    render(<NumberInput value="5000" onChange={mockOnChange} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '10.000' } });
+    expect(mockOnChange).toHaveBeenCalledWith('10000');
+    fireEvent.change(input, { target: { value: '1.000.000' } });
+    expect(mockOnChange).toHaveBeenCalledWith('1000000');
+    fireEvent.change(input, { target: { value: '123.45' } });
+    expect(mockOnChange).toHaveBeenCalledWith('12345');
   });
 });

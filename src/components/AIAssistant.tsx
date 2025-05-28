@@ -21,6 +21,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
   const audioChunksRef = useRef<Blob[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -36,6 +37,24 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
+  // Clean up microphone when component unmounts or dialog closes
+  useEffect(() => {
+    return () => {
+      stopRecordingAndCleanup();
+    };
+  }, []);
+
+  const stopRecordingAndCleanup = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  };
+
   const toggleRecording = async () => {
     if (!user) {
       setShowAuthDialog(true);
@@ -44,15 +63,13 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
 
     if (isRecording) {
       // Stop recording
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.stop();
-        setIsRecording(false);
-      }
+      stopRecordingAndCleanup();
       return;
     }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -72,7 +89,10 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
         await getAIAnswer(userQuestion);
 
         // Clean up the stream
-        stream.getTracks().forEach((track) => track.stop());
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
       };
 
       mediaRecorder.start();
@@ -81,6 +101,12 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
       console.error("Error accessing microphone:", error);
       setIsRecording(false);
     }
+  };
+
+  // Enhanced onClose to stop recording
+  const handleClose = () => {
+    stopRecordingAndCleanup();
+    onClose();
   };
 
   // Mock implementation - in a real app this would use a speech-to-text API

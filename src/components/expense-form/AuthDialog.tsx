@@ -1,9 +1,11 @@
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AuthForms } from "@/components/AuthForms";
 
 interface AuthDialogProps {
   open: boolean;
@@ -23,7 +25,8 @@ export const AuthDialog = ({
           <DialogTitle>Sign In Required</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p>{description}</p>
+          <p className="text-sm text-muted-foreground">{description}</p>
+          <AuthForms onClose={() => onOpenChange(false)} />
         </div>
       </DialogContent>
     </Dialog>

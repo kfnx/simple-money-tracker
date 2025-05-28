@@ -1,58 +1,52 @@
 
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import { SummaryCard } from '../SummaryCard';
-import { ExpenseProvider } from '@/context/ExpenseContext';
+import * as ExpenseContext from '@/context/ExpenseContext';
 
-const MockExpenseProvider = ({ children, mockValues }: any) => {
-  const defaultMockValues = {
-    totalSpent: 0,
-    totalIncome: 0,
-    balance: 0,
-    expenses: [],
-    addExpense: jest.fn(),
-    updateExpense: jest.fn(),
-    deleteExpense: jest.fn(),
-    clearData: jest.fn(),
-    ...mockValues
-  };
+// Mock the useExpenses hook
+const mockUseExpenses = jest.fn();
 
-  return (
-    <ExpenseProvider value={defaultMockValues}>
-      {children}
-    </ExpenseProvider>
-  );
-};
+beforeEach(() => {
+  jest.spyOn(ExpenseContext, 'useExpenses').mockImplementation(mockUseExpenses);
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 describe('SummaryCard', () => {
   test('renders balance correctly', () => {
-    const mockValues = {
+    mockUseExpenses.mockReturnValue({
       totalSpent: 50000,
       totalIncome: 100000,
-      balance: 50000
-    };
+      balance: 50000,
+      expenses: [],
+      addExpense: jest.fn(),
+      updateExpense: jest.fn(),
+      deleteExpense: jest.fn(),
+      clearData: jest.fn(),
+    });
 
-    render(
-      <MockExpenseProvider mockValues={mockValues}>
-        <SummaryCard />
-      </MockExpenseProvider>
-    );
+    render(<SummaryCard />);
 
     expect(screen.getByText('Balance')).toBeInTheDocument();
     expect(screen.getByText('Rp 50,000')).toBeInTheDocument();
   });
 
   test('shows income and expenses', () => {
-    const mockValues = {
+    mockUseExpenses.mockReturnValue({
       totalSpent: 25000,
       totalIncome: 75000,
-      balance: 50000
-    };
+      balance: 50000,
+      expenses: [],
+      addExpense: jest.fn(),
+      updateExpense: jest.fn(),
+      deleteExpense: jest.fn(),
+      clearData: jest.fn(),
+    });
 
-    render(
-      <MockExpenseProvider mockValues={mockValues}>
-        <SummaryCard />
-      </MockExpenseProvider>
-    );
+    render(<SummaryCard />);
 
     expect(screen.getByText('Income')).toBeInTheDocument();
     expect(screen.getByText('Rp 75,000')).toBeInTheDocument();

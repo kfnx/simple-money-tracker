@@ -12,24 +12,26 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('ExpenseContext', () => {
-  test('calculates totals correctly', () => {
+  test('calculates totals correctly', async () => {
     const { result } = renderHook(() => useExpenses(), { wrapper });
 
-    act(() => {
-      result.current.addExpense({
+    await act(async () => {
+      await result.current.addExpense({
         amount: 50000,
         category: 'food',
         type: 'expense',
-        date: new Date()
+        date: new Date(),
+        note: 'Test expense'
       });
     });
 
-    act(() => {
-      result.current.addExpense({
+    await act(async () => {
+      await result.current.addExpense({
         amount: 100000,
         category: 'salary',
         type: 'income',
-        date: new Date()
+        date: new Date(),
+        note: 'Test income'
       });
     });
 
@@ -38,15 +40,16 @@ describe('ExpenseContext', () => {
     expect(result.current.balance).toBe(50000);
   });
 
-  test('adds expense correctly', () => {
+  test('adds expense correctly', async () => {
     const { result } = renderHook(() => useExpenses(), { wrapper });
 
-    act(() => {
-      result.current.addExpense({
+    await act(async () => {
+      await result.current.addExpense({
         amount: 25000,
         category: 'transport',
         type: 'expense',
-        date: new Date()
+        date: new Date(),
+        note: 'Test transport expense'
       });
     });
 

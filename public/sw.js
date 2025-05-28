@@ -1,3 +1,4 @@
+
 const CACHE_NAME = 'money-tracker-v1';
 const STATIC_CACHE = 'static-v1';
 const DYNAMIC_CACHE = 'dynamic-v1';
@@ -15,6 +16,9 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => cache.addAll(STATIC_ASSETS))
+      .catch((error) => {
+        console.log('Cache installation failed:', error);
+      })
   );
 });
 
@@ -33,13 +37,35 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Helper function to check if request should be cached
+function shouldCache(request) {
+  const url = new URL(request.url);
+  
+  // Don't cache if:
+  // - Method is not GET
+  // - URL scheme is not http or https
+  // - URL is from chrome extension
+  // - URL contains certain patterns we want to avoid
+  if (request.method !== 'GET') return false;
+  if (!url.protocol.startsWith('http')) return false;
+  if (url.protocol === 'chrome-extension:') return false;
+  
+  return true;
+}
+
 // Fetch event - implement different strategies based on request type
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
+  // Skip caching for non-cacheable requests
+  if (!shouldCache(request)) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   // API requests - Network First strategy
-  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase')) {
     event.respondWith(networkFirstStrategy(request));
   }
   // Static assets - Cache First strategy
@@ -56,8 +82,15 @@ self.addEventListener('fetch', (event) => {
 async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request);
-    const cache = await caches.open(DYNAMIC_CACHE);
-    cache.put(request, networkResponse.clone());
+    
+    // Only cache successful responses
+    if (networkResponse.ok && shouldCache(request)) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone()).catch((error) => {
+        console.log('Failed to cache response:', error);
+      });
+    }
+    
     return networkResponse;
   } catch (error) {
     const cachedResponse = await caches.match(request);
@@ -74,10 +107,17 @@ async function cacheFirstStrategy(request) {
   if (cachedResponse) {
     return cachedResponse;
   }
+  
   try {
     const networkResponse = await fetch(request);
-    const cache = await caches.open(STATIC_CACHE);
-    cache.put(request, networkResponse.clone());
+    
+    if (networkResponse.ok && shouldCache(request)) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, networkResponse.clone()).catch((error) => {
+        console.log('Failed to cache response:', error);
+      });
+    }
+    
     return networkResponse;
   } catch (error) {
     throw error;
@@ -87,10 +127,19 @@ async function cacheFirstStrategy(request) {
 // Stale While Revalidate strategy - good for other resources
 async function staleWhileRevalidateStrategy(request) {
   const cachedResponse = await caches.match(request);
+  
   const fetchPromise = fetch(request).then(async (networkResponse) => {
-    const cache = await caches.open(DYNAMIC_CACHE);
-    cache.put(request, networkResponse.clone());
+    if (networkResponse.ok && shouldCache(request)) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone()).catch((error) => {
+        console.log('Failed to cache response:', error);
+      });
+    }
     return networkResponse;
+  }).catch((error) => {
+    console.log('Network request failed:', error);
+    return cachedResponse;
   });
+  
   return cachedResponse || fetchPromise;
-} 
+}

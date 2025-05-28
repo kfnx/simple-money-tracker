@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -103,7 +104,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
     }
   };
 
-  // Enhanced onClose to stop recording
+  // Updated onClose to only stop recording, not clear chat history
   const handleClose = () => {
     stopRecordingAndCleanup();
     onClose();

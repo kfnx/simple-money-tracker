@@ -47,7 +47,7 @@ const IndexContent = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto h-screen px-1 py-4 flex flex-col relative">
+    <div className="max-w-md mx-auto h-screen px-2 py-4 flex flex-col relative">
       {!loading &&
         (user ? (
           <Button

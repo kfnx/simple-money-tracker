@@ -24,6 +24,77 @@ interface Expense {
   note?: string;
 }
 
+interface FinancialFunctions {
+  getTotalSpending: (dateRange?: { start: string; end: string }) => Promise<{ total: number; currency: string }>;
+  getCategorySpending: (category: string, dateRange?: { start: string; end: string }) => Promise<{ total: number; currency: string }>;
+  getMonthlySpending: (month: string) => Promise<{ total: number; currency: string }>;
+  getTopCategories: (limit?: number) => Promise<Array<{ category: string; amount: number }>>;
+  getRecentTransactions: (limit?: number) => Promise<Array<{ type: string; amount: number; category: string; date: string }>>;
+}
+
+// Define the available functions for the AI
+const availableFunctions: {
+  getTotalSpending: (expenses: Expense[], dateRange?: { start: string; end: string }) => Promise<{ total: number; currency: string }>;
+  getCategorySpending: (expenses: Expense[], category: string, dateRange?: { start: string; end: string }) => Promise<{ total: number; currency: string }>;
+  getMonthlySpending: (expenses: Expense[], month: string) => Promise<{ total: number; currency: string }>;
+  getTopCategories: (expenses: Expense[], limit?: number) => Promise<Array<{ category: string; amount: number }>>;
+  getRecentTransactions: (expenses: Expense[], limit?: number) => Promise<Array<{ type: string; amount: number; category: string; date: string }>>;
+} = {
+  getTotalSpending: async (expenses: Expense[], dateRange?: { start: string; end: string }) => {
+    const filteredExpenses = dateRange 
+      ? expenses.filter(e => e.type === 'expense' && e.date >= dateRange.start && e.date <= dateRange.end)
+      : expenses.filter(e => e.type === 'expense');
+    
+    const total = filteredExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    return { total, currency: 'IDR' };
+  },
+
+  getCategorySpending: async (expenses: Expense[], category: string, dateRange?: { start: string; end: string }) => {
+    const filteredExpenses = dateRange
+      ? expenses.filter(e => e.type === 'expense' && e.category === category && e.date >= dateRange.start && e.date <= dateRange.end)
+      : expenses.filter(e => e.type === 'expense' && e.category === category);
+    
+    const total = filteredExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    return { total, currency: 'IDR' };
+  },
+
+  getMonthlySpending: async (expenses: Expense[], month: string) => {
+    const filteredExpenses = expenses.filter(e => 
+      e.type === 'expense' && 
+      e.date.startsWith(month)
+    );
+    
+    const total = filteredExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    return { total, currency: 'IDR' };
+  },
+
+  getTopCategories: async (expenses: Expense[], limit: number = 5) => {
+    const categories = expenses.reduce((acc: Record<string, number>, expense) => {
+      if (expense.type === 'expense') {
+        acc[expense.category] = (acc[expense.category] || 0) + Number(expense.amount);
+      }
+      return acc;
+    }, {});
+
+    return Object.entries(categories)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([category, amount]) => ({ category, amount }));
+  },
+
+  getRecentTransactions: async (expenses: Expense[], limit: number = 5) => {
+    return expenses
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, limit)
+      .map(e => ({
+        type: e.type,
+        amount: Number(e.amount),
+        category: e.category,
+        date: e.date
+      }));
+  }
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -172,6 +243,7 @@ async function createEmbedding(text: string): Promise<number[]> {
   });
 
   const data = await response.json();
+  console.log("embedding data", data.data[0]);
   return data.data[0].embedding;
 }
 
@@ -203,6 +275,13 @@ async function generateAIResponse(question: string, relevantContext: FinancialCo
 Financial Context:
 ${contextText}
 
+Available Functions:
+- getTotalSpending(dateRange?: { start: string; end: string }): Get total spending for a date range
+- getCategorySpending(category: string, dateRange?: { start: string; end: string }): Get spending for a specific category
+- getMonthlySpending(month: string): Get spending for a specific month (YYYY-MM format)
+- getTopCategories(limit?: number): Get top spending categories
+- getRecentTransactions(limit?: number): Get recent transactions
+
 Guidelines:
 - Use Indonesian Rupiah (Rp ) for all amounts
 - Be conversational and helpful
@@ -210,8 +289,11 @@ Guidelines:
 - If you notice concerning patterns, mention them kindly
 - Celebrate good financial habits when you see them
 - Keep responses concise but informative
-- Use Indonesian number formatting (e.g., Rp 1.000.000)`;
+- Use Indonesian number formatting (e.g., Rp 1.000.000)
+- When you need specific data, use the available functions
+- Use both the provided context and function calls to give the most accurate and helpful response`;
 
+  // First, let's get the initial response with function calling
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -219,16 +301,141 @@ Guidelines:
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: question }
       ],
+      functions: [
+        {
+          name: 'getTotalSpending',
+          description: 'Get total spending for a date range',
+          parameters: {
+            type: 'object',
+            properties: {
+              dateRange: {
+                type: 'object',
+                properties: {
+                  start: { type: 'string', description: 'Start date in YYYY-MM-DD format' },
+                  end: { type: 'string', description: 'End date in YYYY-MM-DD format' }
+                }
+              }
+            }
+          }
+        },
+        {
+          name: 'getCategorySpending',
+          description: 'Get spending for a specific category',
+          parameters: {
+            type: 'object',
+            properties: {
+              category: { type: 'string', description: 'Category name' },
+              dateRange: {
+                type: 'object',
+                properties: {
+                  start: { type: 'string', description: 'Start date in YYYY-MM-DD format' },
+                  end: { type: 'string', description: 'End date in YYYY-MM-DD format' }
+                }
+              }
+            },
+            required: ['category']
+          }
+        },
+        {
+          name: 'getMonthlySpending',
+          description: 'Get spending for a specific month',
+          parameters: {
+            type: 'object',
+            properties: {
+              month: { type: 'string', description: 'Month in YYYY-MM format' }
+            },
+            required: ['month']
+          }
+        },
+        {
+          name: 'getTopCategories',
+          description: 'Get top spending categories',
+          parameters: {
+            type: 'object',
+            properties: {
+              limit: { type: 'number', description: 'Number of categories to return' }
+            }
+          }
+        },
+        {
+          name: 'getRecentTransactions',
+          description: 'Get recent transactions',
+          parameters: {
+            type: 'object',
+            properties: {
+              limit: { type: 'number', description: 'Number of transactions to return' }
+            }
+          }
+        }
+      ],
+      function_call: 'auto',
       temperature: 0.7,
       max_tokens: 500,
     }),
   });
 
   const data = await response.json();
-  return data.choices[0].message.content;
+  const message = data.choices[0].message;
+  let finalResponse = '';
+
+  // If the AI wants to call a function
+  if (message.function_call) {
+    const functionName = message.function_call.name;
+    const functionArgs = JSON.parse(message.function_call.arguments);
+    
+    // Call the function with the expenses data
+    const functionResult = await availableFunctions[functionName](allExpenses, ...Object.values(functionArgs));
+    
+    // Get a new response from the AI with both the function result and context
+    const secondResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: question },
+          { role: 'function', name: functionName, content: JSON.stringify(functionResult) }
+        ],
+        temperature: 0.5,
+        max_tokens: 500,
+      }),
+    });
+
+    const secondData = await secondResponse.json();
+    finalResponse = secondData.choices[0].message.content;
+  } else {
+    finalResponse = message.content;
+  }
+
+  // Now, let's enhance the response with additional context if needed
+  const enhancedResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: question },
+        { role: 'assistant', content: finalResponse },
+        { role: 'user', content: 'Please enhance this response with any additional insights from the financial context that could be helpful.' }
+      ],
+      temperature: 0.5,
+      max_tokens: 500,
+    }),
+  });
+
+  const enhancedData = await enhancedResponse.json();
+  return enhancedData.choices[0].message.content;
 }

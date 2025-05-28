@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -84,7 +83,7 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
           type: "audio/wav",
         });
 
-        // Convert speech to text (simplified mock implementation)
+        // Convert speech to text
         const userQuestion = await processSpeechToText(audioBlob);
         setQuestion(userQuestion);
         await getAIAnswer(userQuestion);
@@ -110,22 +109,48 @@ export const AIAssistant = ({ onClose }: { onClose: () => void }) => {
     onClose();
   };
 
-  // Mock implementation - in a real app this would use a speech-to-text API
   const processSpeechToText = async (audioBlob: Blob): Promise<string> => {
-    // This is a placeholder that would normally connect to a speech-to-text service
-    // For demo purposes, we'll use some example questions
-    const exampleQuestions = [
-      "How much did I spend this month?",
-      "What category do I spend the most on?",
-      "How can I improve my savings?",
-      "Should I reduce my expenses?",
-      "What's my spending pattern like?",
-      "How is my financial health?",
-      "Where should I cut back on spending?",
-    ];
-    return exampleQuestions[
-      Math.floor(Math.random() * exampleQuestions.length)
-    ];
+    try {
+      // Convert blob to base64
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const base64Audio = btoa(
+        new Uint8Array(arrayBuffer)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+
+      // Get the user's session to pass to the edge function
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("No valid session found");
+      }
+
+      const { data, error } = await supabase.functions.invoke(
+        "speech-to-text",
+        {
+          body: {
+            audioData: base64Audio,
+            authToken: session.access_token,
+          },
+        }
+      );
+
+      if (error) {
+        console.error("Edge function error:", error);
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      return data.text;
+    } catch (error) {
+      console.error("Error processing speech to text:", error);
+      throw error;
+    }
   };
 
   const getAIAnswer = async (questionText: string) => {

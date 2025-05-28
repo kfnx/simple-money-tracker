@@ -270,7 +270,7 @@ function findRelevantContext(questionEmbedding: number[], contextEmbeddings: num
 async function generateAIResponse(question: string, relevantContext: FinancialContext[], allExpenses: Expense[]): Promise<string> {
   const contextText = relevantContext.map(ctx => ctx.text).join('\n');
   
-  const systemPrompt = `You are SaldoAI, a personal finance assistant for Indonesian users. You have access to the user's real financial data and should provide personalized advice based on their actual spending patterns and financial situation.
+  const systemPrompt = `You are SaldoAI, a personal finance assistant. You have access to the user's real financial data and should provide personalized advice based on their actual spending patterns and financial situation.
 
 Financial Context:
 ${contextText}

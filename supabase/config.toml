@@ -1,5 +1,7 @@
-
 project_id = "aeczgmvjlbdhdjkqzlet"
 
 [functions.ai-finance-chat]
+verify_jwt = false
+
+[functions.speech-to-text]
 verify_jwt = false

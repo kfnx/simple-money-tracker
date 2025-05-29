@@ -335,7 +335,7 @@ async function createEmbedding(text: string): Promise<number[]> {
   });
 
   const data = await response.json();
-  console.log("embedding data", data.data[0]);
+
   return data.data[0].embedding;
 }
 
@@ -511,7 +511,13 @@ Guidelines:
       allExpenses,
       ...Object.values(functionArgs)
     );
-    console.log("function_call", functionName, functionArgs, functionResult);
+    console.log({
+      function_call: {
+        name: functionName,
+        args: functionArgs,
+        result: functionResult,
+      },
+    });
 
     // Get a new response from the AI with both the function result and context
     const secondResponse = await fetch(

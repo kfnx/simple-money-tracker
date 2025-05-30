@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Expense, DatabaseExpense } from '@/types/expense';
 import { useToast } from '@/components/ui/use-toast';
@@ -52,6 +53,15 @@ const convertToDatabaseExpense = (expense: Omit<Expense, 'id'>, userId?: string)
   user_id: userId,
   date: expense.date.toISOString(),
 });
+
+// Helper function to create a normalized key for comparison
+const createExpenseKey = (expense: Expense | DatabaseExpense) => {
+  const amount = typeof expense.amount === 'string' ? Number(expense.amount) : expense.amount;
+  const date = expense.date instanceof Date ? expense.date.toISOString() : expense.date;
+  const note = expense.note || '';
+  
+  return `${amount}-${expense.category}-${date}-${expense.type}-${note}`;
+};
 
 // Modal component for syncing local expenses
 const SyncModal = ({ 
@@ -180,6 +190,9 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const handleSyncExpenses = async () => {
     try {
+      console.log('Starting sync process...');
+      console.log('Local expenses to sync:', localExpenses);
+
       // First, fetch current expenses from Supabase to check for duplicates
       const { data: existingExpenses, error: fetchError } = await supabase
         .from('expenses')
@@ -187,18 +200,24 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       if (fetchError) throw fetchError;
 
-      // Filter out local expenses that might already exist in the database
-      // We'll use a combination of amount, category, date, and type to identify potential duplicates
+      console.log('Existing expenses in database:', existingExpenses);
+
+      // Create a set of existing expense keys for efficient lookup
       const existingExpensesSet = new Set(
-        (existingExpenses as DatabaseExpense[]).map(exp => 
-          `${exp.amount}-${exp.category}-${exp.date}-${exp.type}-${exp.note || ''}`
-        )
+        (existingExpenses as DatabaseExpense[]).map(exp => createExpenseKey(exp))
       );
 
+      console.log('Existing expense keys:', Array.from(existingExpensesSet));
+
+      // Filter out local expenses that might already exist in the database
       const uniqueLocalExpenses = localExpenses.filter(localExp => {
-        const localKey = `${localExp.amount}-${localExp.category}-${localExp.date.toISOString()}-${localExp.type}-${localExp.note || ''}`;
-        return !existingExpensesSet.has(localKey);
+        const localKey = createExpenseKey(localExp);
+        const isDuplicate = existingExpensesSet.has(localKey);
+        console.log(`Local expense key: ${localKey}, is duplicate: ${isDuplicate}`);
+        return !isDuplicate;
       });
+
+      console.log('Unique local expenses to sync:', uniqueLocalExpenses);
 
       if (uniqueLocalExpenses.length === 0) {
         // All local expenses already exist, just clean up
@@ -215,9 +234,10 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       // Add only the unique local expenses to Supabase
-      const { error } = await supabase.from('expenses').insert(
-        uniqueLocalExpenses.map(expense => convertToDatabaseExpense(expense, user?.id))
-      );
+      const expensesToInsert = uniqueLocalExpenses.map(expense => convertToDatabaseExpense(expense, user?.id));
+      console.log('Expenses to insert:', expensesToInsert);
+
+      const { error } = await supabase.from('expenses').insert(expensesToInsert);
 
       if (error) throw error;
 

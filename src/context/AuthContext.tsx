@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
       
-      // Clear all local data
+      // Clear ALL localStorage data on sign out
       localStorage.clear();
       
       toast({

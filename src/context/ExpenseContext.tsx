@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Expense, DatabaseExpense } from '@/types/expense';
 import { useToast } from '@/components/ui/use-toast';
@@ -54,15 +53,6 @@ const convertToDatabaseExpense = (expense: Omit<Expense, 'id'>, userId?: string)
   date: expense.date.toISOString(),
 });
 
-// Helper function to create a normalized key for comparison
-const createExpenseKey = (expense: Expense | DatabaseExpense) => {
-  const amount = typeof expense.amount === 'string' ? Number(expense.amount) : expense.amount;
-  const date = expense.date instanceof Date ? expense.date.toISOString() : expense.date;
-  const note = expense.note || '';
-  
-  return `${amount}-${expense.category}-${date}-${expense.type}-${note}`;
-};
-
 // Modal component for syncing local expenses
 const SyncModal = ({ 
   onSync, 
@@ -100,9 +90,8 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   
   // Clear all data (for logout)
   const clearData = () => {
-    localStorage.removeItem('expenses');
     setExpenses([]);
-    setLocalExpenses([]);
+    localStorage.removeItem('expenses');
   };
 
   // Load expenses from Supabase when user is logged in
@@ -171,19 +160,10 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
             date: new Date(expense.date),
             type: expense.type || 'expense'
           }));
-          
-          // Only show sync modal if there are local expenses
-          if (parsedExpenses.length > 0) {
-            setLocalExpenses(parsedExpenses);
-            setShowSyncModal(true);
-          } else {
-            // Clean up empty localStorage
-            localStorage.removeItem('expenses');
-          }
+          setLocalExpenses(parsedExpenses);
+          setShowSyncModal(true);
         } catch (error) {
           console.error('Failed to parse saved expenses:', error);
-          // Clean up corrupted localStorage
-          localStorage.removeItem('expenses');
         }
       }
     }
@@ -191,58 +171,14 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const handleSyncExpenses = async () => {
     try {
-      console.log('Starting sync process...');
-      console.log('Local expenses to sync:', localExpenses);
-
-      // First, fetch current expenses from Supabase to check for duplicates
-      const { data: existingExpenses, error: fetchError } = await supabase
-        .from('expenses')
-        .select('*');
-
-      if (fetchError) throw fetchError;
-
-      console.log('Existing expenses in database:', existingExpenses);
-
-      // Create a set of existing expense keys for efficient lookup
-      const existingExpensesSet = new Set(
-        (existingExpenses as DatabaseExpense[]).map(exp => createExpenseKey(exp))
+      // Add all local expenses to Supabase
+      const { error } = await supabase.from('expenses').insert(
+        localExpenses.map(expense => convertToDatabaseExpense(expense, user?.id))
       );
-
-      console.log('Existing expense keys:', Array.from(existingExpensesSet));
-
-      // Filter out local expenses that might already exist in the database
-      const uniqueLocalExpenses = localExpenses.filter(localExp => {
-        const localKey = createExpenseKey(localExp);
-        const isDuplicate = existingExpensesSet.has(localKey);
-        console.log(`Local expense key: ${localKey}, is duplicate: ${isDuplicate}`);
-        return !isDuplicate;
-      });
-
-      console.log('Unique local expenses to sync:', uniqueLocalExpenses);
-
-      if (uniqueLocalExpenses.length === 0) {
-        // All local expenses already exist, just clean up
-        localStorage.removeItem('expenses');
-        setLocalExpenses([]);
-        setShowSyncModal(false);
-        await fetchExpenses();
-
-        toast({
-          title: 'Already synced',
-          description: 'All your local expenses were already in your account.',
-        });
-        return;
-      }
-
-      // Add only the unique local expenses to Supabase
-      const expensesToInsert = uniqueLocalExpenses.map(expense => convertToDatabaseExpense(expense, user?.id));
-      console.log('Expenses to insert:', expensesToInsert);
-
-      const { error } = await supabase.from('expenses').insert(expensesToInsert);
 
       if (error) throw error;
 
-      // Clear localStorage and refresh expenses
+      // Clear localStorage
       localStorage.removeItem('expenses');
       setLocalExpenses([]);
       setShowSyncModal(false);
@@ -250,7 +186,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       toast({
         title: 'Success',
-        description: `${uniqueLocalExpenses.length} local expenses have been synced to your account.`,
+        description: 'Your local expenses have been synced to your account.',
       });
     } catch (error) {
       console.error('Error syncing expenses:', error);

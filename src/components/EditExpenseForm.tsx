@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Expense, TransactionType } from "@/types/expense";
 import { useExpenses } from "@/context/ExpenseContext";
@@ -27,7 +26,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -40,42 +39,54 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
   // Initialize form state with expense data
   const [amount, setAmount] = useState<string>(expense.amount.toString());
   const [note, setNote] = useState<string>(expense.note || "");
-  const [selectedCategory, setSelectedCategory] = useState<string>(expense.category);
-  const [transactionType, setTransactionType] = useState<TransactionType>(expense.type);
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    expense.category
+  );
+  const [transactionType, setTransactionType] = useState<TransactionType>(
+    expense.type
+  );
   const [date, setDate] = useState<Date>(expense.date);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  
+
   const { updateExpense, deleteExpense } = useExpenses();
   const { user } = useAuth();
   const { trackFinancialEvent } = useAnalytics();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) return;
-    
-    updateExpense(expense.id, {
-      amount: numAmount,
-      category: transactionType === 'income' ? 'other' : selectedCategory,
-      type: transactionType,
-      note: note.trim() || undefined,
-      date: date
-    });
+    try {
+      e.preventDefault();
 
-    // Track the edit event
-    trackFinancialEvent.editTransaction(transactionType);
-    
-    onClose();
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount <= 0) return;
+
+      updateExpense(expense.id, {
+        amount: numAmount,
+        category: transactionType === "income" ? "other" : selectedCategory,
+        type: transactionType,
+        note: note.trim() || undefined,
+        date: date,
+      });
+
+      // Track the edit event
+      trackFinancialEvent.editTransaction(transactionType);
+
+      onClose();
+    } catch (error) {
+      console.error("Error updating expense:", error);
+    }
   };
 
   const handleDelete = () => {
-    deleteExpense(expense.id);
-    // Track the delete event
-    trackFinancialEvent.deleteTransaction(expense.type);
-    onClose();
+    try {
+      deleteExpense(expense.id);
+      // Track the delete event
+      trackFinancialEvent.deleteTransaction(expense.type);
+      onClose();
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+    }
   };
 
   const handleCategoryManage = () => {
@@ -90,31 +101,22 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Transaction type selector (expense/income) */}
-        <TransactionTypeSelector 
-          value={transactionType} 
-          onChange={setTransactionType} 
+        <TransactionTypeSelector
+          value={transactionType}
+          onChange={setTransactionType}
         />
 
         {/* Amount input with currency formatting */}
-        <AmountInput 
-          value={amount} 
-          onChange={setAmount} 
-        />
+        <AmountInput value={amount} onChange={setAmount} />
 
         {/* Date picker */}
-        <DateSelector 
-          value={date} 
-          onChange={setDate} 
-        />
+        <DateSelector value={date} onChange={setDate} />
 
         {/* Optional note input */}
-        <NoteInput 
-          value={note} 
-          onChange={setNote} 
-        />
+        <NoteInput value={note} onChange={setNote} />
 
         {/* Category selector (only shown for expenses) */}
-        {transactionType === 'expense' && (
+        {transactionType === "expense" && (
           <CategorySelector
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
@@ -124,17 +126,17 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
 
         <div className="flex flex-col gap-3">
           {/* Form action buttons */}
-          <FormActions 
+          <FormActions
             onCancel={onClose}
             amount={amount}
             transactionType={transactionType}
             submitLabel="Save"
           />
-          
+
           {/* Delete button */}
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             className="text-red-500 border-red-500 hover:bg-red-50"
             onClick={() => setShowDeleteDialog(true)}
           >
@@ -155,9 +157,9 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
       </Dialog>
 
       {/* Auth Dialog */}
-      <AuthDialog 
-        open={showAuthDialog} 
-        onOpenChange={setShowAuthDialog} 
+      <AuthDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
         description="Please sign in to manage categories."
       />
 
@@ -167,12 +169,16 @@ export const EditExpenseForm = ({ expense, onClose }: EditExpenseFormProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this transaction.
+              This action cannot be undone. This will permanently delete this
+              transaction.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

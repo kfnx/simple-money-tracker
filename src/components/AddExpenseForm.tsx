@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TransactionType } from "@/types/expense";
 import { useExpenses } from "@/context/ExpenseContext";
@@ -23,37 +22,41 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   const [amount, setAmount] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("other");
-  const [transactionType, setTransactionType] = useState<TransactionType>("expense");
+  const [transactionType, setTransactionType] =
+    useState<TransactionType>("expense");
   const [date, setDate] = useState<Date>(new Date());
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  
+
   const { addExpense } = useExpenses();
   const { user } = useAuth();
   const { trackFinancialEvent } = useAnalytics();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) return;
-    
-    addExpense({
-      amount: numAmount,
-      category: transactionType === 'income' ? 'other' : selectedCategory,
-      type: transactionType,
-      note: note.trim() || undefined,
-      date: date
-    });
+    try {
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount <= 0) return;
 
-    // Track the financial event
-    if (transactionType === 'expense') {
-      trackFinancialEvent.addExpense(numAmount, selectedCategory);
-    } else {
-      trackFinancialEvent.addIncome(numAmount);
+      addExpense({
+        amount: numAmount,
+        category: transactionType === "income" ? "other" : selectedCategory,
+        type: transactionType,
+        note: note.trim() || undefined,
+        date: date,
+      });
+
+      // Track the financial event
+      if (transactionType === "expense") {
+        trackFinancialEvent.addExpense(numAmount, selectedCategory);
+      } else {
+        trackFinancialEvent.addIncome(numAmount);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error("Error adding expense:", error);
     }
-    
-    onClose();
   };
 
   const handleCategoryManage = () => {
@@ -67,27 +70,18 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <TransactionTypeSelector 
-          value={transactionType} 
-          onChange={setTransactionType} 
+        <TransactionTypeSelector
+          value={transactionType}
+          onChange={setTransactionType}
         />
 
-        <AmountInput 
-          value={amount} 
-          onChange={setAmount} 
-        />
+        <AmountInput value={amount} onChange={setAmount} />
 
-        <DateSelector 
-          value={date} 
-          onChange={setDate} 
-        />
+        <DateSelector value={date} onChange={setDate} />
 
-        <NoteInput 
-          value={note} 
-          onChange={setNote} 
-        />
+        <NoteInput value={note} onChange={setNote} />
 
-        {transactionType === 'expense' && (
+        {transactionType === "expense" && (
           <CategorySelector
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
@@ -95,7 +89,7 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
           />
         )}
 
-        <FormActions 
+        <FormActions
           onCancel={onClose}
           amount={amount}
           transactionType={transactionType}
@@ -111,9 +105,9 @@ export const AddExpenseForm = ({ onClose }: { onClose: () => void }) => {
         </DialogContent>
       </Dialog>
 
-      <AuthDialog 
-        open={showAuthDialog} 
-        onOpenChange={setShowAuthDialog} 
+      <AuthDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
         description="Please sign in to manage categories."
       />
     </>

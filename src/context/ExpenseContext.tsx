@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Expense, DatabaseExpense } from '@/types/expense';
 import { useToast } from '@/components/ui/use-toast';
@@ -99,8 +100,9 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   
   // Clear all data (for logout)
   const clearData = () => {
-    setExpenses([]);
     localStorage.removeItem('expenses');
+    setExpenses([]);
+    setLocalExpenses([]);
   };
 
   // Load expenses from Supabase when user is logged in
@@ -151,18 +153,12 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fetchExpenses();
   }, [user]);
 
-  // Handle expenses storage and cleanup based on auth state
+  // Save expenses to localStorage when not logged in
   useEffect(() => {
-    if (!user) {
-      // User is logged out
-      setExpenses([]); // Clear expenses from state
-      localStorage.removeItem('expenses'); // Clear localStorage
-    } else if (expenses.length > 0) {
-      // User is logged in and has expenses
-      // No need to save to localStorage as data is in Supabase
-      localStorage.removeItem('expenses');
+    if (!user && expenses.length > 0) {
+      localStorage.setItem('expenses', JSON.stringify(expenses));
     }
-  }, [user, expenses]);
+  }, [expenses, user]);
 
   // Check for local expenses when user logs in
   useEffect(() => {
